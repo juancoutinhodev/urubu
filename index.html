@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sinto Muito...</title>
+    <!-- Incluindo o Tailwind CSS para estilização moderna e responsiva -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Incluindo uma fonte romântica do Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@400;700&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fef0f8; /* Fundo rosa bem suave */
+            background-image: radial-gradient(#ffe4e6 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        .romantic-font {
+            font-family: 'Dancing Script', cursive;
+        }
+
+        /* Estilo para o efeito de digitação */
+        .typing-text {
+            border-right: 2px solid transparent;
+            animation: blink-cursor 0.75s step-end infinite;
+        }
+
+        @keyframes blink-cursor {
+            from, to { border-right-color: transparent; }
+            50% { border-right-color: #d14781; }
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+
+    <!-- Container principal com um visual de cartão elegante -->
+    <div class="bg-white rounded-3xl shadow-2xl p-8 max-w-lg w-full text-center sm:p-12 border border-pink-100">
+        <h1 class="romantic-font text-5xl font-bold text-pink-600 mb-4 sm:text-6xl">Para Você...</h1>
+        <p class="text-gray-700 text-lg mb-8 sm:text-xl h-20 sm:h-24">
+            <!-- A mensagem será inserida aqui pelo JavaScript com o efeito de digitação -->
+            <span id="apology-message"></span>
+        </p>
+        
+        <!-- Contêiner dos botões com espaçamento e estilo responsivo -->
+        <div class="flex flex-col space-y-6">
+            <button class="option-button bg-pink-500 hover:bg-pink-600 text-white font-semibold py-4 px-6 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-105" onclick="sendMessage('Cinema 🍿')">
+                Cinema
+            </button>
+            <button class="option-button bg-pink-500 hover:bg-pink-600 text-white font-semibold py-4 px-6 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-105" onclick="sendMessage('Jantar Romântico 🍝')">
+                Jantar Romântico
+            </button>
+            <button class="option-button bg-pink-500 hover:bg-pink-600 text-white font-semibold py-4 px-6 rounded-full shadow-lg transition duration-300 ease-in-out transform hover:scale-105" onclick="sendMessage('Passeio ao Ar Livre 🏞️')">
+                Passeio ao Ar Livre
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // O número de telefone para o WhatsApp (substitua pelo seu!)
+        const phoneNumber = '5513996832181';
+
+        // A mensagem de desculpas que terá o efeito de digitação
+        const apologyText = "Sei que errei e sinto muito por isso. Gostaria de me desculpar e te convidar para algo especial. Qual dessas opções você aceita?";
+
+        const apologyElement = document.getElementById('apology-message');
+        let i = 0;
+        let typingSpeed = 50; // Velocidade de digitação em milissegundos
+
+        // Função para o efeito de digitação
+        function typeWriter() {
+            if (i < apologyText.length) {
+                apologyElement.innerHTML += apologyText.charAt(i);
+                i++;
+                setTimeout(typeWriter, typingSpeed);
+            } else {
+                // Adiciona o cursor piscando ao final da digitação
+                apologyElement.classList.add('typing-text');
+            }
+        }
+
+        // Função para enviar a mensagem pelo WhatsApp
+        function sendMessage(option) {
+            const message = encodeURIComponent(`Olá! Aceito o convite, escolhi: ${option}`);
+            const whatsappUrl = `https://wa.me/${phoneNumber}?text=${message}`;
+            
+            window.location.href = whatsappUrl;
+        }
+
+        // Inicia o efeito de digitação quando a página carrega
+        window.onload = typeWriter;
+    </script>
+
+</body>
+</html>
