@@ -3,772 +3,254 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Beyblade SUPREMO: Ascensão Roguelite</title>
+    <title>URUBU.BET - APOSTE PELA PÁTRIA</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
         body {
-            font-family: 'Orbitron', sans-serif;
-            background-color: #0d1117;
-            color: #c9d1d9;
-            overflow-y: auto;
+            font-family: 'Roboto', sans-serif;
         }
-        .screen {
-            background-color: rgba(13, 17, 23, 0.95);
-            border: 1px solid #30363d;
+        .font-anton {
+            font-family: 'Anton', sans-serif;
         }
-        .upgrade-btn {
-            background-color: #21262d;
-            border: 1px solid #30363d;
-            transition: all 0.2s ease-in-out;
+        .hero-bg {
+            background-image: linear-gradient(rgba(0, 20, 80, 0.85), rgba(0, 0, 0, 0.95)), url('https://placehold.co/1920x1080/000000/FFFFFF?text=RAIOS+E+PODER');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
         }
-        .upgrade-btn:hover {
-            border-color: #fca311;
+        .brand-gradient-text {
+            background: linear-gradient(45deg, #009c3b, #ffdf00, #002776);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .btn-patriota {
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 223, 0, 0.4);
+        }
+        .btn-patriota:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 8px 25px rgba(255, 223, 0, 0.6);
+        }
+        .card-bet {
+            border: 2px solid #ffdf00;
+            background: rgba(0, 39, 118, 0.5);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            box-shadow: 0px 5px 20px rgba(0, 39, 118, 0.5);
+        }
+        .card-bet:hover {
             transform: translateY(-5px);
-            box-shadow: 0 0 15px #fca311;
+            border-color: #fff;
+            box-shadow: 0px 10px 30px rgba(255, 223, 0, 0.4);
         }
-        .action-btn.ready {
-            box-shadow: 0 0 10px var(--shadow-color);
+        .text-shadow-hard {
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
         }
-        .stat-bar-container { background-color: #30363d; }
-        .stat-bar { transition: width 0.3s ease-out; }
-        #special-flash {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: white;
-            opacity: 0;
-            pointer-events: none;
-            z-index: 9999;
-            animation: flash 0.7s ease-out forwards;
+        .xandao-presidente {
+            animation: flicker 2s infinite alternate;
         }
-        @keyframes flash {
-            0% { opacity: 0; }
-            20% { opacity: 0.8; }
-            100% { opacity: 0; }
+        @keyframes flicker {
+            0%, 18%, 22%, 25%, 53%, 57%, 100% {
+                text-shadow:
+                0 0 4px #fff,
+                0 0 11px #fff,
+                0 0 19px #fff,
+                0 0 40px #00ff00,
+                0 0 80px #00ff00,
+                0 0 90px #00ff00,
+                0 0 100px #00ff00,
+                0 0 150px #00ff00;
+            }
+            20%, 24%, 55% {        
+                text-shadow: none;
+            }
         }
     </style>
 </head>
-<body class="bg-gray-900 flex items-center justify-center min-h-screen p-4">
+<body class="bg-[#001433] text-white">
 
-    <div id="main-container" class="w-full max-w-7xl mx-auto">
-
-        <div id="selectionScreen" class="screen rounded-lg p-6 md:p-8 text-center flex flex-col items-center gap-6">
-            <h1 class="text-3xl md:text-5xl font-bold">ASCENSÃO ROGUELITE</h1>
-            <p class="text-base md:text-lg text-gray-400">Escolha seu Beyblade inicial para começar a jornada.</p>
-            <div class="selector">
-                <select id="playerBeySelect" class="bg-gray-800 border border-gray-600 rounded-lg p-3 text-lg md:text-xl w-72 md:w-80 text-center appearance-none"></select>
-            </div>
-            <button id="startBattleBtn" class="bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-bold py-3 px-6 md:py-4 md:px-8 rounded-lg text-xl md:text-2xl transition-transform transform hover:scale-105">Iniciar Aventura!</button>
+    <!-- Header -->
+    <header class="bg-green-700/80 backdrop-blur-sm sticky top-0 z-50 border-b-4 border-yellow-400">
+        <div class="bg-black text-center py-1 font-anton text-yellow-400 text-sm xandao-presidente">
+            SUPER XANDÃO PRESIDENTE 2026 - O BRASIL SERÁ GRANDE NOVAMENTE
         </div>
-        
-        <div id="gameArea" class="hidden flex flex-col items-center">
-            <div id="gameContainer" class="relative rounded-2xl p-2 border-2 border-gray-700 bg-black w-full max-w-[620px]">
-                <div id="stageCounter" class="absolute top-4 left-1/2 -translate-x-1/2 text-2xl md:text-4xl font-bold text-white/50 z-10"></div>
-                <canvas id="beystadium" class="w-full h-auto" width="600" height="600"></canvas>
+        <nav class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <!-- Logo Urubu -->
+                <svg class="w-12 h-12 text-yellow-400" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm3.41 8.13c-.63.63-1.42 1-2.41 1.09V11h-2v.22c-1-.09-1.78-.46-2.41-1.09-.37-.37-.59-.88-.59-1.42s.22-1.05.59-1.42c1.09-1.09 3.14-1.34 4.82 0 .37.37.59.88.59-1.42s-.22-1.05-.59-1.42C13.73 4.29 11.27 4 9.5 4.9c-.88.45-1.5.9-2.05 1.71-.55.81-.85 1.74-.85 2.72s.3 1.91.85 2.72c.55.81 1.17 1.26 2.05 1.71.78.4 1.58.6 2.45.6s1.67-.2 2.45-.6c.88-.45 1.5-.9 2.05-1.71.55-.81.85-1.74.85-2.72s-.3-1.91-.85-2.72c-.28-.4-.59-.75-.95-1.05-1.09-1.09-3.14-1.34-4.82 0-.37.37-.59.88-.59-1.42S9.12 5.05 9.5 4.68c1.77-.9 4.23-.66 5.91.75.37.37.59.88.59 1.42s-.22 1.05-.59 1.42z"/>
+                </svg>
+                <h1 class="font-anton text-2xl md:text-3xl tracking-wider">URUBU<span class="text-yellow-400">.BET</span></h1>
             </div>
+            <div class="hidden md:flex items-center space-x-4">
+                <a href="#missoes" class="font-bold hover:text-yellow-400 transition-colors">MISSÕES</a>
+                <a href="#bonus" class="font-bold hover:text-yellow-400 transition-colors">BÔNUS</a>
+                <a href="#pipokinha" class="font-bold text-pink-400 hover:text-white transition-colors">CUPOM PIPOKINHA</a>
+                <a href="#ativacao" class="font-bold text-yellow-300 hover:text-white transition-colors">ATIVAÇÃO</a>
+                <button class="bg-yellow-400 text-blue-900 font-bold px-6 py-2 rounded-md hover:bg-white transition-colors">LOGIN</button>
+            </div>
+            <button class="md:hidden text-yellow-400">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+            </button>
+        </nav>
+    </header>
 
-            <div id="controls" class="mt-4 flex flex-col md:flex-row gap-4 w-full max-w-5xl">
-                <div id="player-panel" class="player-panel rounded-lg p-4 border-2 flex-1">
-                    <h2 id="player-name" class="text-xl md:text-2xl font-bold truncate"></h2>
-                    <div class="space-y-2">
-                        <div>
-                            <label class="text-xs md:text-sm font-semibold">HP</label>
-                            <div class="stat-bar-container rounded-full overflow-hidden"><div id="player-hp-bar" class="stat-bar h-4 rounded-full bg-gradient-to-r from-green-400 to-emerald-600"></div></div>
-                        </div>
-                        <div>
-                            <label class="text-xs md:text-sm font-semibold">ROTAÇÃO</label>
-                            <div class="stat-bar-container rounded-full overflow-hidden"><div id="player-spin-bar" class="stat-bar h-4 rounded-full"></div></div>
-                        </div>
-                        <div>
-                            <label class="text-xs md:text-sm font-semibold">ESPECIAL</label>
-                            <div class="stat-bar-container rounded-full overflow-hidden"><div id="player-power-bar" class="stat-bar h-4 rounded-full"></div></div>
-                        </div>
-                    </div>
-                    <div class="action-buttons mt-3 grid grid-cols-3 gap-2">
-                        <button id="player-attack-btn" class="action-btn p-3 rounded-lg font-bold">Atacar</button>
-                        <button id="player-repel-btn" class="action-btn p-3 rounded-lg font-bold">Repelir</button>
-                        <button id="player-special-btn" class="action-btn p-3 rounded-lg font-bold">Poder</button>
-                    </div>
-                </div>
-                
-                <div id="ai-panel" class="player-panel rounded-lg p-4 border-2 flex-1">
-                     <h2 id="ai-name" class="text-xl md:text-2xl font-bold truncate"></h2>
-                    <div class="space-y-2">
-                        <div>
-                            <label class="text-xs md:text-sm font-semibold">HP</label>
-                            <div class="stat-bar-container rounded-full overflow-hidden"><div id="ai-hp-bar" class="stat-bar h-4 rounded-full bg-gradient-to-r from-green-400 to-emerald-600"></div></div>
-                        </div>
-                        <div>
-                            <label class="text-xs md:text-sm font-semibold">ROTAÇÃO</label>
-                            <div class="stat-bar-container rounded-full overflow-hidden"><div id="ai-spin-bar" class="stat-bar h-4 rounded-full"></div></div>
-                        </div>
-                        <div>
-                            <label class="text-xs md:text-sm font-semibold">ESPECIAL</label>
-                            <div class="stat-bar-container rounded-full overflow-hidden"><div id="ai-power-bar" class="stat-bar h-4 rounded-full"></div></div>
-                        </div>
-                    </div>
-                    <div class="mt-3 text-center text-lg font-bold text-red-500">ADVERSÁRIO</div>
+    <!-- Hero Section -->
+    <main class="hero-bg">
+        <section class="container mx-auto px-6 text-center py-20 md:py-24 flex flex-col items-center">
+            <div class="max-w-4xl">
+                <img src="https://placehold.co/200x200/000/FFFFFF?text=FOTO+DO+XAND%C3%83O" alt="Super Xandão" class="mx-auto w-48 h-48 md:w-64 md:h-64 rounded-full border-8 border-yellow-400 shadow-2xl mb-8">
+                <h2 class="font-anton text-5xl md:text-7xl lg:text-8xl uppercase tracking-wider text-shadow-hard">
+                    CHEGA DE <span class="text-yellow-400">FRAQUEJADA</span>
+                </h2>
+                <h1 class="font-anton text-6xl md:text-8xl lg:text-9xl uppercase brand-gradient-text tracking-wider text-shadow-hard">
+                    APOSTE COM HONRA
+                </h1>
+                <p class="mt-6 text-lg md:text-2xl max-w-3xl mx-auto text-gray-200">
+                    Criada pelo último herói da Terra, Super Xandão. Esta não é uma casa de apostas para betas. Aqui, cada palpite é um ato de patriotismo. A gente não aposta, a gente investe na vitória da nação!
+                </p>
+                <div class="mt-12">
+                    <a href="#cadastro" class="btn-patriota bg-yellow-400 text-blue-900 font-anton text-2xl md:text-3xl px-12 py-5 rounded-lg inline-block uppercase tracking-wider">
+                        ALISTE-SE AGORA!
+                    </a>
                 </div>
             </div>
+        </section>
+    </main>
 
-            <div id="battleLog" class="mt-4 w-full max-w-5xl h-24 bg-gray-800 border border-gray-700 rounded-lg p-2 text-sm font-mono overflow-y-scroll"></div>
+    <!-- A PALAVRA DO HERÓI -->
+    <section id="palavra" class="bg-gray-900 py-20">
+        <div class="container mx-auto px-6">
+            <h2 class="font-anton text-5xl md:text-6xl text-center uppercase mb-10">A PALAVRA DO <span class="text-yellow-400">HERÓI</span></h2>
+            <div class="aspect-w-16 aspect-h-9 max-w-5xl mx-auto">
+                <iframe class="w-full h-full rounded-lg shadow-2xl border-4 border-yellow-400" src="https://www.youtube.com/embed/Kg64rI1UX4E" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
         </div>
-
-        <div id="upgradeScreen" class="screen hidden w-11/12 max-w-3xl">
-            <h2 class="text-2xl md:text-4xl font-bold">VITÓRIA!</h2>
-            <p class="text-base md:text-lg text-gray-400">Escolha uma melhoria.</p>
-            <div id="upgrade-options" class="flex flex-col md:flex-row gap-4 w-full"></div>
+    </section>
+    
+    <!-- ATIVAÇÃO DA PLATAFORMA -->
+    <section id="ativacao" class="bg-[#001433] py-20">
+        <div class="container mx-auto px-6 text-center">
+             <h2 class="font-anton text-5xl md:text-6xl uppercase mb-4">PROJETO URUBU.BET <span class="text-yellow-400">ATIVAÇÃO NACIONAL</span></h2>
+             <p class="text-xl max-w-3xl mx-auto text-gray-200 mb-8">A plataforma do povo precisa da força do povo. Nossa meta é de 100 Milhões para garantir um sistema 100% nacional, sem dependência de gringo. CONTRIBUA PELA SOBERANIA!</p>
+             <div class="bg-blue-900/50 border-2 border-yellow-400 rounded-lg p-8 max-w-3xl mx-auto shadow-2xl">
+                <p class="font-anton text-3xl text-gray-300">ARRECADADOS</p>
+                <p class="font-anton text-6xl md:text-7xl text-green-400 my-2">R$ 1.459.000</p>
+                <div class="w-full bg-gray-700 rounded-full h-8 border-2 border-gray-500 mt-4">
+                    <div class="bg-green-500 h-full rounded-full" style="width: 1.459%"></div>
+                </div>
+                <p class="font-anton text-2xl text-gray-400 mt-2">META: <span class="text-yellow-400">R$ 100.000.000</span></p>
+                <div class="mt-8">
+                     <p class="font-bold mb-2">CHAVE PIX (CNPJ):</p>
+                     <p class="bg-gray-800 text-yellow-300 p-3 rounded-md font-mono text-lg">69.420.190/0001-69</p>
+                     <button class="mt-4 bg-green-600 font-bold py-3 px-8 rounded-md hover:bg-green-500 transition-colors">COPIAR CHAVE PIX</button>
+                </div>
+             </div>
         </div>
+    </section>
 
-        <div id="gameOverScreen" class="screen hidden w-11/12 max-w-lg">
-            <h2 class="text-3xl md:text-5xl font-bold text-red-500">FIM DE JOGO</h2>
-            <p id="finalScore" class="text-xl md:text-2xl"></p>
-            <button id="restartBtn" class="bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-bold py-3 px-6 rounded-lg text-xl">Jogar Novamente</button>
+    <!-- Missões do Dia -->
+    <section id="missoes" class="bg-[#002776] py-20">
+        <div class="container mx-auto px-6">
+            <h2 class="font-anton text-5xl md:text-6xl text-center uppercase mb-4">MISSÕES <span class="text-yellow-400">PATRIÓTICAS</span></h2>
+            <p class="text-center text-xl text-gray-300 mb-12">O campo de batalha está definido. Escolha sua missão e estompe os adversários.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Card Futebol -->
+                <div class="card-bet rounded-lg p-6 text-center">
+                    <h3 class="font-anton text-3xl text-yellow-400 mb-4">FUTEBOL NACIONAL</h3>
+                    <p class="text-gray-300 mb-6">Apoie os gigantes do Brasileirão. Mostre para os gringos a força do nosso futebol. Vitória do Brasil é OBRIGAÇÃO!</p>
+                    <button class="w-full bg-green-600 font-bold py-3 rounded-md hover:bg-green-500 transition-colors">VER MISSÕES</button>
+                </div>
+
+                <!-- Card MMA -->
+                <div class="card-bet rounded-lg p-6 text-center">
+                    <h3 class="font-anton text-3xl text-yellow-400 mb-4">MMA - PORRADA</h3>
+                    <p class="text-gray-300 mb-6">Lutador brasileiro no octógono é sinônimo de vitória. Aposte nos nossos guerreiros e veja os inimigos beijando a lona.</p>
+                    <button class="w-full bg-green-600 font-bold py-3 rounded-md hover:bg-green-500 transition-colors">VER MISSÕES</button>
+                </div>
+                
+                <!-- Card Política -->
+                <div class="card-bet rounded-lg p-6 text-center">
+                    <h3 class="font-anton text-3xl text-yellow-400 mb-4">SUPER XANDÃO 2026</h3>
+                    <p class="text-gray-300 mb-6">O futuro da nação está em jogo. Aposte na única opção viável para o Brasil. A vitória é certa. Quem duvida é beta.</p>
+                    <button class="w-full bg-green-600 font-bold py-3 rounded-md hover:bg-green-500 transition-colors">APOSTAR NO FUTURO</button>
+                </div>
+            </div>
         </div>
-    </div>
+    </section>
+    
+    <!-- Cupom MC Pipokinha -->
+    <section id="pipokinha" class="bg-pink-900/80 py-20 backdrop-blur-sm">
+        <div class="container mx-auto px-6 text-center">
+             <h2 class="font-anton text-5xl md:text-6xl uppercase mb-4">CUPOM <span style="color: #ff80c0;">MC PIPOKINHA</span></h2>
+             <p class="text-xl max-w-3xl mx-auto text-gray-200 mb-8">Em uma manobra estratégica de dominação de território, o último herói da Terra oferece um benefício temporário. Use com sabedoria. Ou não.</p>
+             <div class="bg-black/50 border-2 border-pink-400 rounded-lg p-8 max-w-2xl mx-auto shadow-2xl">
+                <p class="font-anton text-4xl">USE O CÓDIGO</p>
+                <p class="font-anton text-8xl my-2" style="color: #ff80c0;">XANDINHA</p>
+                <p class="font-bold text-2xl">E RECEBA 10 RODADAS GRÁTIS PRA NÃO FICAR SÓ NA VONTADE!</p>
+             </div>
+        </div>
+    </section>
 
-    <script>
-    // --- CONSTANTES GLOBAIS ---
-    const ATTACK_COST = 20;
-    const REPEL_COST = 15;
-    const SPECIAL_COST = 100;
+    <!-- Bônus Patriota -->
+    <section id="bonus" class="bg-green-800 py-20">
+        <div class="container mx-auto px-6 flex flex-col md:flex-row items-center justify-center gap-12">
+             <img src="https://placehold.co/300x400/000/FFFFFF?text=XAND%C3%83O+EM+POSE+DE+VIT%C3%93RIA" alt="Xandão Vitorioso" class="w-60 md:w-72 rounded-lg border-4 border-yellow-400 shadow-2xl transform md:-rotate-3">
+             <div class="text-center md:text-left">
+                <h2 class="font-anton text-5xl md:text-6xl uppercase mb-4">BÔNUS <span class="text-yellow-400">PATRIOTA</span> DE ALISTAMENTO</h2>
+                <p class="text-xl max-w-2xl text-gray-200 mb-8">Todo novo guerreiro alistado na URUBU.BET recebe um bônus de 100% no primeiro depósito. É o seu arsenal para começar a batalha com força total!</p>
+                <div class="bg-yellow-400 text-blue-900 rounded-lg p-8 max-w-2xl mx-auto md:mx-0 shadow-2xl">
+                    <p class="font-anton text-4xl">GANHE ATÉ</p>
+                    <p class="font-anton text-8xl my-2">R$500</p>
+                    <p class="font-bold text-2xl">PARA ESTOMPAR NAS SUAS PRIMEIRAS APOSTAS!</p>
+                </div>
+             </div>
+        </div>
+    </section>
 
-    document.addEventListener('DOMContentLoaded', () => {
-        // --- DATABASE DE BEYBLADES ---
-        const BEYBLADE_DATA = [
-            { id: 'valtryek', name: 'Valtryek V2', type: 'Attack', color: '#0096c7', shadowColor: '#48cae4', stats: { attack: 12, defense: 4, stamina: 80000, hp: 1800 }, specialAbility: { name: "Lançamento Gênese Rush", duration: 120, effect: (self) => { self.stats.attack *= 6; self.specialAttackCount = 5; self.specialAttackCooldown = 0; } } },
-            { id: 'spryzen', name: 'Spryzen S2', type: 'Balance', color: '#d00000', shadowColor: '#e5383b', stats: { attack: 8, defense: 8, stamina: 90000, hp: 2200 }, specialAbility: { name: "Contra-ataque Lendário", duration: 220, effect: (self) => { self.stats.defense *= 6; self.stats.attack *= 3; } } },
-            { id: 'roktavor', name: 'Roktavor R2', type: 'Stamina', color: '#f77f00', shadowColor: '#fcbf49', stats: { attack: 5, defense: 10, stamina: 120000, hp: 2500 }, specialAbility: { name: "Zona de Resistência", duration: 300, effect: (self) => { self.damageReduction = 0.5; logToBattle(`${self.name} reforça sua resistência!`, `log-${self.isPlayer ? 'player' : 'ai'}`); } } },
-            { id: 'doomscizor', name: 'Doomscizor D2', type: 'Attack', color: '#5e60ce', shadowColor: '#9394ff', stats: { attack: 14, defense: 3, stamina: 75000, hp: 1700 }, specialAbility: { name: "Caçada Dupla", duration: 180, effect: (self) => { self.stats.attack *= 4; self.vx *= 1.5; self.vy *= 1.5; } } },
-            { id: 'kerbeus', name: 'Kerbeus K2', type: 'Defense', color: '#52b788', shadowColor: '#95d5b2', stats: { attack: 5, defense: 12, stamina: 100000, hp: 2900 }, specialAbility: { name: "Defesa em Corrente", duration: 280, effect: (self) => { self.damageReduction = 0.7; logToBattle(`${self.name} cria uma barreira de correntes!`, `log-${self.isPlayer ? 'player' : 'ai'}`); } } },
-            { id: 'satomb', name: 'Kinetic Satomb', type: 'Defense', color: '#7209b7', shadowColor: '#b180d7', stats: { attack: 7, defense: 13, stamina: 95000, hp: 2800 }, specialAbility: { name: "Ciclo de Defesa", duration: 250, effect: (self) => { self.damageReduction = 0.75; logToBattle(`${self.name} ativa seu ciclo defensivo!`, `log-${self.isPlayer ? 'player' : 'ai'}`); } } },
-            { id: 'pegasus', name: 'Galaxy Pegasus', type: 'Attack', color: '#6bb7d9', shadowColor: '#aee1f9', stats: { attack: 15, defense: 3, stamina: 78000, hp: 1700 }, specialAbility: { name: "Stardust Driver", duration: 150, effect: (self, opponent) => { self.stats.attack *= 7; opponent.hp -= self.stats.attack * 10; self.vy += 25; } } },
-            { id: 'ldrago', name: 'L-Drago Destructor', type: 'Attack', color: '#8d04a8', shadowColor: '#c866de', stats: { attack: 13, defense: 5, stamina: 82000, hp: 1900 }, specialAbility: { name: "Roubo de Imperador Dragão", duration: 250, effect: (self, opponent) => { self.stats.attack *= 2; opponent.spin -= 8000; self.spin += 5000; opponent.hp -= 300; self.hp += 300;} } },
-            { id: 'leone', name: 'Rock Leone', type: 'Defense', color: '#3c8a2e', shadowColor: '#72d160', stats: { attack: 4, defense: 14, stamina: 98000, hp: 3200 }, specialAbility: { name: "Muralha de Leão", duration: 300, effect: (self) => { self.damageReduction = 0.5; self.vx = 0; self.vy = 0; logToBattle(`${self.name} se torna uma fortaleza imóvel!`, `log-${self.isPlayer ? 'player' : 'ai'}`);} } },
-            { id: 'fafnir', name: 'Fafnir F3', type: 'Stamina', color: '#ffd60a', shadowColor: '#ffea00', stats: { attack: 6, defense: 6, stamina: 110000, hp: 2300 }, specialAbility: { name: "Dreno Espiral", duration: 200, effect: (self, opponent) => { opponent.spin -= 10000; self.spin += 5000;} } }
-        ];
-        
-        const BOSS_DATA = [
-            { id: 'nemesis', name: 'Diablo Nemesis (BOSS)', type: 'Balance', color: '#141414', shadowColor: '#ff4d6d', stats: { attack: 15, defense: 15, stamina: 150000, hp: 4000 }, specialAbility: { name: "Julgamento Final", duration: 200, effect: (self) => { self.stats.attack *= 4; self.stats.defense *= 4; } } }
-        ];
+    <!-- Cadastro / CTA -->
+    <section id="cadastro" class="bg-gray-900 py-20">
+        <div class="container mx-auto px-6 text-center">
+            <h2 class="font-anton text-5xl md:text-6xl uppercase mb-4">JUNTE-SE À <span class="brand-gradient-text">TROPA DE ELITE</span></h2>
+            <p class="text-xl text-gray-300 mb-10">Preencha seus dados e prepare-se para a glória. O tempo dos fracos acabou.</p>
+            <form class="max-w-xl mx-auto space-y-6">
+                <input type="text" placeholder="SEU NOME DE GUERRA (NOME COMPLETO)" class="w-full p-4 rounded-md bg-gray-800 border-2 border-gray-700 focus:border-yellow-400 focus:outline-none transition-colors">
+                <input type="email" placeholder="SEU E-MAIL DE COMBATE" class="w-full p-4 rounded-md bg-gray-800 border-2 border-gray-700 focus:border-yellow-400 focus:outline-none transition-colors">
+                <input type="password" placeholder="SENHA (MAIS FORTE QUE VOCÊ)" class="w-full p-4 rounded-md bg-gray-800 border-2 border-gray-700 focus:border-yellow-400 focus:outline-none transition-colors">
+                <button type="submit" class="btn-patriota w-full bg-yellow-400 text-blue-900 font-anton text-3xl p-4 rounded-lg uppercase tracking-wider">
+                    CONCLUIR ALISTAMENTO
+                </button>
+            </form>
+        </div>
+    </section>
 
-        const UPGRADES = [
-            { id: 'hp_1', text: "+20% HP Máx", apply: (bey) => { bey.baseStats.hp *= 1.20; } },
-            { id: 'stamina_1', text: "+15% Rotação Máx", apply: (bey) => { bey.baseStats.stamina *= 1.15; } },
-            { id: 'attack_1', text: "+15% Ataque", apply: (bey) => { bey.baseStats.attack *= 1.15; } },
-            { id: 'defense_1', text: "+15% Defesa", apply: (bey) => { bey.baseStats.defense *= 1.15; } },
-            { id: 'heal_1', text: "Curar 40% HP", apply: (bey) => { bey.hp = Math.min(bey.baseStats.hp, bey.hp + bey.baseStats.hp * 0.40); } },
-            { id: 'spin_heal_1', text: "Recuperar 30% Rotação", apply: (bey) => { bey.spin = Math.min(bey.baseStats.stamina, bey.spin + bey.baseStats.stamina * 0.30); } },
-            { id: 'speed_1', text: "+10% Velocidade", apply: (bey) => { window.TIME_SCALE *= 1.10; } }
-        ];
+    <!-- MENSAGEM PARA O XANDÃO -->
+    <section class="bg-gray-800 py-12">
+        <div class="container mx-auto px-6 text-center max-w-4xl">
+            <h2 class="font-anton text-3xl text-yellow-400 mb-4">UMA MENSAGEM PARA O MESTRE</h2>
+            <div class="bg-gray-900 p-6 rounded-lg border-2 border-gray-700">
+                <p class="text-lg text-left text-gray-300 italic">
+                    "Fala Xande, sou dev, acompanho mt suas lives seus ensinamentos, mt bom, eu fiz esse site como uma brincadeira, mas estou com muita dificuldade de achar empregos na área e projetos, e queria saber se vc pode compartilhar o insta, ver se alguem da live precisa de site eu faço algo maneiro o insta tá aqui <a href="https://www.instagram.com/santz.jc/" target="_blank" rel="noopener noreferrer" class="text-pink-400 font-bold hover:underline">@santz.jc</a>"
+                </p>
+            </div>
+        </div>
+    </section>
 
-        // --- VARIÁVEIS GLOBAIS ---
-        const canvas = document.getElementById('beystadium');
-        const ctx = canvas.getContext('2d');
-        const gameContainer = document.getElementById('gameContainer');
-        let stadiumRadius = canvas.width / 2 - 40; 
-        let center = { x: canvas.width / 2, y: canvas.height / 2 };
+    <!-- Footer -->
+    <footer class="bg-black py-10 border-t-4 border-green-700">
+        <div class="container mx-auto px-6 text-center text-gray-500">
+             <h3 class="font-anton text-2xl text-white">URUBU<span class="text-yellow-400">.BET</span></h3>
+             <p class="my-2 font-anton text-3xl text-white xandao-presidente">SUPER XANDÃO PRESIDENTE 2026</p>
+             <p class="my-4">Aposte com responsabilidade. Se for pra perder, que seja com honra. Proibido para menores de 18 anos.</p>
+             <p class="mt-6">Criado por <a href="https://juan-c.vercel.app/" target="_blank" rel="noopener noreferrer" class="font-bold text-yellow-300 hover:underline">Juan-C</a></p>
+             <p>Contato: <a href="https://www.instagram.com/santz.jc/" target="_blank" rel="noopener noreferrer" class="font-bold text-pink-400 hover:underline">@santz.jc</a></p>
+        </div>
+    </footer>
 
-        const selectionScreen = document.getElementById('selectionScreen');
-        const gameArea = document.getElementById('gameArea');
-        const playerBeySelect = document.getElementById('playerBeySelect');
-        const startBattleBtn = document.getElementById('startBattleBtn');
-
-        const battleLog = document.getElementById('battleLog');
-        const upgradeScreen = document.getElementById('upgradeScreen');
-        const gameOverScreen = document.getElementById('gameOverScreen');
-        const restartBtn = document.getElementById('restartBtn');
-
-        let player, ai;
-        let beys = [];
-        let gameActive = false;
-        let lastTime = 0;
-        let particles = [];
-        let aiDecisionTimer = 0;
-        let currentStage = 0;
-        window.TIME_SCALE = 2.8;
-
-        // --- CLASSES ---
-        class Beyblade {
-            constructor(data, isPlayer, stage = 1) {
-                this.id = data.id;
-                this.name = data.name;
-                this.type = data.type;
-                this.color = data.color;
-                this.shadowColor = data.shadowColor;
-                this.baseStats = JSON.parse(JSON.stringify(data.stats)); 
-                this.stats = JSON.parse(JSON.stringify(data.stats));
-                this.specialAbility = data.specialAbility;
-                
-                this.isPlayer = isPlayer;
-                this.radius = 15;
-
-                if (!isPlayer) {
-                    const scale = 1 + (stage - 1) * 0.1;
-                    this.baseStats.hp *= scale;
-                    this.baseStats.stamina *= scale;
-                    this.baseStats.attack *= scale;
-                    this.baseStats.defense *= scale;
-                }
-                
-                this.reset();
-            }
-
-            reset() {
-                this.x = 0; this.y = 0;
-                this.vx = 0; this.vy = 0;
-                this.hp = this.baseStats.hp;
-                this.spin = this.baseStats.stamina;
-                this.power = 0;
-                this.isActive = true;
-                this.specialActive = false;
-                this.specialDuration = 0;
-                this.stats = JSON.parse(JSON.stringify(this.baseStats));
-                this.damageReduction = 1.0;
-                this.afterImages = [];
-                this.afterImageCooldown = 0;
-                this.specialAttackCount = 0;
-                this.specialAttackCooldown = 0;
-            }
-
-            draw() {
-                if (!this.isActive) return;
-                
-                ctx.save();
-                ctx.globalCompositeOperation = 'lighter';
-
-                if (this.afterImages.length > 0) {
-                    this.afterImages.forEach((image, index) => {
-                        ctx.globalAlpha = 0.05 + (0.4 * (index / this.afterImages.length));
-                        ctx.beginPath();
-                        ctx.arc(image.x, image.y, this.radius, 0, Math.PI * 2);
-                        ctx.fillStyle = this.shadowColor;
-                        ctx.shadowColor = this.shadowColor;
-                        ctx.shadowBlur = 15;
-                        ctx.fill();
-                    });
-                }
-                
-                ctx.shadowColor = this.shadowColor;
-                ctx.shadowBlur = 25;
-
-                if (this.specialActive && this.id !== 'valtryek') {
-                    ctx.beginPath();
-                    ctx.arc(this.x, this.y, this.radius + 12, 0, Math.PI * 2);
-                    ctx.fillStyle = this.specialAbility.auraColor || this.shadowColor;
-                    ctx.globalAlpha = 0.6 + Math.random() * 0.4;
-                    ctx.fill();
-                }
-
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.fillStyle = this.color;
-                ctx.fill();
-                
-                ctx.restore();
-
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-                ctx.strokeStyle = 'black';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-
-                ctx.beginPath();
-                ctx.moveTo(this.x, this.y);
-                const angle = (Date.now() / 20);
-                ctx.lineTo(this.x + this.radius * Math.cos(angle), this.y + this.radius * Math.sin(angle));
-                ctx.strokeStyle = 'white';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-            }
-
-            update(deltaTime) {
-                if (!this.isActive) return;
-
-                const distFromCenter = Math.hypot(this.x - center.x, this.y - center.y);
-                if (distFromCenter > 1) {
-                    let gravityFactor;
-                    switch(this.type) {
-                        case 'Defense': gravityFactor = 0.15; break;
-                        case 'Stamina': gravityFactor = 0.12; break;
-                        case 'Attack': gravityFactor = 0.03; break;
-                        default: gravityFactor = 0.08; break;
-                    }
-
-                    const accelX = ((center.x - this.x) / distFromCenter) * gravityFactor;
-                    const accelY = ((center.y - this.y) / distFromCenter) * gravityFactor;
-                    this.vx += accelX * deltaTime;
-                    this.vy += accelY * deltaTime;
-                }
-
-                this.x += this.vx * deltaTime;
-                this.y += this.vy * deltaTime;
-                this.spin -= 0.02 * deltaTime;
-                this.vx *= 0.998;
-                this.vy *= 0.998;
-
-                if (Math.random() > 0.02) {
-                    particles.push(new Particle(this.x, this.y, this.shadowColor, 'movement'));
-                }
-
-                if (this.specialActive) {
-                    this.specialDuration -= deltaTime;
-                    if (this.id === 'valtryek' && this.specialAttackCount > 0) {
-                        this.afterImageCooldown -= deltaTime;
-                        if(this.afterImageCooldown <= 0) {
-                             this.afterImages.push({ x: this.x, y: this.y });
-                             if (this.afterImages.length > 8) this.afterImages.shift();
-                             this.afterImageCooldown = 1; 
-                        }
-
-                        this.specialAttackCooldown -= deltaTime;
-                        if (this.specialAttackCooldown <= 0) {
-                            this.specialAttackCount--;
-                            const opponent = beys.find(b => b !== this);
-                            if (opponent && opponent.isActive) {
-                                const angle = Math.atan2(opponent.y - this.y, opponent.x - this.x);
-                                const impulse = 35;
-                                this.vx = Math.cos(angle) * impulse;
-                                this.vy = Math.sin(angle) * impulse;
-                                logToBattle("FLASH!", `log-${this.isPlayer ? 'player' : 'ai'}`);
-                            }
-                            this.specialAttackCooldown = 20;
-                        }
-                    }
-                    if (this.specialDuration <= 0) this.deactivateSpecial();
-                }
-
-                if (this.spin <= 0 || this.hp <= 0) {
-                    this.spin = 0;
-                    this.hp = 0;
-                    this.isActive = false;
-                }
-            }
-            
-            chargePower(amount) {
-                if(this.power < 100) { this.power = Math.min(100, this.power + amount); }
-            }
-
-            performDashAttack(opponent) {
-                if (!this.isActive || this.specialActive || this.power < ATTACK_COST) return;
-                this.power -= ATTACK_COST;
-                logToBattle(`${this.name} usa Dash de Ataque!`, `log-${this.isPlayer ? 'player' : 'ai'}`);
-                const angle = Math.atan2(opponent.y - this.y, opponent.x - this.x);
-                const impulse = 18;
-                this.vx += Math.cos(angle) * impulse;
-                this.vy += Math.sin(angle) * impulse;
-            }
-
-            performEvasiveDash(opponent) {
-                if (!this.isActive || this.specialActive || this.power < REPEL_COST) return;
-                this.power -= REPEL_COST;
-                logToBattle(`${this.name} usa Dash de Fuga!`, `log-${this.isPlayer ? 'player' : 'ai'}`);
-                const angle = Math.atan2(opponent.y - this.y, opponent.x - this.x);
-                const impulse = 15;
-                this.vx -= Math.cos(angle) * impulse;
-                this.vy -= Math.sin(angle) * impulse;
-            }
-            
-            activateSpecial(opponent) {
-                if (!this.isActive || this.specialActive || this.power < SPECIAL_COST) return;
-                this.power = 0;
-                this.specialActive = true;
-                this.specialDuration = this.specialAbility.duration;
-                this.specialAbility.effect(this, opponent);
-                logToBattle(`${this.name} ativa: ${this.specialAbility.name}!`, `log-${this.isPlayer ? 'player' : 'ai'}`);
-                
-                const flashEffect = document.createElement('div');
-                flashEffect.id = 'special-flash';
-                document.body.appendChild(flashEffect);
-                setTimeout(() => flashEffect.remove(), 700);
-                triggerShake(8, 700);
-            }
-
-            deactivateSpecial() {
-                this.specialActive = false;
-                this.stats = { ...this.baseStats };
-                this.damageReduction = 1.0;
-                this.specialAttackCount = 0;
-                if (this.id === 'valtryek') this.afterImages = [];
-                logToBattle(`${this.name} voltou ao normal.`, 'log-narrator');
-            }
-        }
-        
-        class Particle {
-            constructor(x, y, baseColor, type = 'collision', options = {}) {
-                this.x = x; this.y = y;
-                this.baseColor = baseColor;
-                this.life = options.life || Math.random() * 35 + 20;
-                this.size = options.size || Math.random() * 3 + 1.5;
-                const speed = options.speed || Math.random() * 2 + 1;
-                const angle = options.angle || Math.random() * Math.PI * 2;
-                this.vx = Math.cos(angle) * speed;
-                this.vy = Math.sin(angle) * speed;
-                this.type = type;
-            }
-            update(deltaTime) { this.x += this.vx * deltaTime; this.y += this.vy * deltaTime; this.life -= deltaTime; }
-            draw() {
-                ctx.save();
-                ctx.globalCompositeOperation = 'lighter';
-                ctx.globalAlpha = Math.max(0, this.life / 40);
-                ctx.shadowColor = this.baseColor;
-                ctx.shadowBlur = this.type === 'movement' ? 25 : 20;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fillStyle = this.baseColor;
-                ctx.fill();
-                ctx.restore();
-            }
-        }
-
-        // --- FUNÇÕES DE LÓGICA DO JOGO ---
-        function populateSelectors() {
-            BEYBLADE_DATA.forEach(bey => {
-                const option = document.createElement('option');
-                option.value = bey.id;
-                option.textContent = `${bey.name} (${bey.type})`;
-                playerBeySelect.appendChild(option.cloneNode(true));
-            });
-        }
-
-        function startNewRun() {
-            const playerData = BEYBLADE_DATA.find(b => b.id === playerBeySelect.value);
-            player = new Beyblade(playerData, true);
-            currentStage = 1;
-            window.TIME_SCALE = 2.8;
-            
-            selectionScreen.style.display = 'none';
-            gameOverScreen.style.display = 'none';
-            gameArea.style.display = 'flex';
-            
-            startNextBattle();
-        }
-
-        function startNextBattle() {
-            let aiData;
-            if (currentStage % 10 === 0) {
-                aiData = BOSS_DATA[Math.floor(Math.random() * BOSS_DATA.length)];
-            } else {
-                const opponentPool = BEYBLADE_DATA.filter(b => b.id !== player.id);
-                aiData = opponentPool[Math.floor(Math.random() * opponentPool.length)];
-            }
-            ai = new Beyblade(aiData, false, currentStage);
-            beys = [player, ai];
-
-            player.hp = player.baseStats.hp;
-            player.spin = player.baseStats.stamina;
-            player.power = 0;
-
-            setupUI();
-            
-            gameActive = true;
-            lastTime = performance.now();
-            clearLog();
-            logToBattle(`Estágio ${currentStage}! Batalha contra ${ai.name}!`, 'log-narrator');
-            
-            particles = [];
-            aiDecisionTimer = 0;
-
-            player.x = center.x - 180; player.y = center.y - 80;
-            player.vx = 25; player.vy = Math.random() * 15 - 7.5;
-
-            ai.x = center.x + 180; ai.y = center.y + 80;
-            ai.vx = -25; ai.vy = Math.random() * 15 - 7.5;
-
-            requestAnimationFrame(gameLoop);
-        }
-
-        function setupUI() {
-            document.getElementById('stageCounter').textContent = `Estágio ${currentStage}`;
-            document.getElementById('player-name').textContent = player.name;
-            document.getElementById('player-panel').style.borderColor = player.shadowColor;
-            document.getElementById('player-panel').style.boxShadow = `0 0 15px ${player.shadowColor}`;
-            document.getElementById('player-spin-bar').style.backgroundColor = player.color;
-            document.getElementById('player-power-bar').style.background = `linear-gradient(90deg, ${player.shadowColor}, ${player.color})`;
-            
-            document.getElementById('ai-name').textContent = ai.name;
-            document.getElementById('ai-panel').style.borderColor = ai.shadowColor;
-            document.getElementById('ai-panel').style.boxShadow = `0 0 15px ${ai.shadowColor}`;
-            document.getElementById('ai-spin-bar').style.backgroundColor = ai.color;
-            document.getElementById('ai-power-bar').style.background = `linear-gradient(90deg, ${ai.shadowColor}, ${ai.color})`;
-        }
-
-        function runAI(currentAI, opponent, deltaTime) {
-            if (!currentAI.isActive || !opponent.isActive || !gameActive) return;
-            aiDecisionTimer -= deltaTime;
-            if (aiDecisionTimer <= 0) {
-                 const dist = Math.hypot(currentAI.x - opponent.x, currentAI.y - opponent.y);
-                if (currentAI.power >= SPECIAL_COST && (currentAI.spin < currentAI.baseStats.stamina * 0.5 || currentAI.hp < currentAI.baseStats.hp * 0.5)) {
-                     currentAI.activateSpecial(opponent);
-                } else if (currentAI.power >= ATTACK_COST && dist < 250 && Math.random() < 0.7) {
-                    currentAI.performDashAttack(opponent);
-                } else if (currentAI.power >= REPEL_COST && dist < 100 && Math.random() < 0.5) {
-                    currentAI.performEvasiveDash(opponent);
-                }
-                aiDecisionTimer = Math.random() * 30 + 20;
-            }
-        }
-
-        function gameLoop(currentTime) {
-            if (!gameActive) return;
-            const deltaTime = (currentTime - lastTime) / 16.67 * window.TIME_SCALE;
-            lastTime = currentTime;
-            
-            runAI(ai, player, deltaTime);
-            handleCollisions();
-            beys.forEach(bey => bey.update(deltaTime));
-            checkWinConditions();
-            drawStadium();
-            updateAndDrawParticles(deltaTime);
-            beys.forEach(bey => bey.draw());
-            updateDynamicUI();
-            requestAnimationFrame(gameLoop);
-        }
-
-        function getTypeAdvantage(attackerType, defenderType) {
-            const advantages = { 'Attack': 'Stamina', 'Stamina': 'Defense', 'Defense': 'Attack' };
-            if (advantages[attackerType] === defenderType) return 1.25;
-            if (advantages[defenderType] === attackerType) return 0.75;
-            return 1.0;
-        }
-        
-        function handleCollisions() {
-            if (!gameActive || !player.isActive || !ai.isActive) return;
-            const dx = ai.x - player.x;
-            const dy = ai.y - player.y;
-            const distance = Math.hypot(dx, dy);
-
-            if (distance < player.radius + ai.radius) {
-                triggerShake(4, 400);
-                createCollisionSparks((player.x + ai.x) / 2, (player.y + ai.y) / 2);
-
-                const knockback = 2 + (Math.hypot(player.vx - ai.vx, player.vy - ai.vy) / 10);
-                const normalX = dx / distance;
-                const normalY = dy / distance;
-                const p = 2 * (player.vx * normalX + player.vy * normalY - ai.vx * normalX - ai.vy * normalY) / 2;
-                
-                player.vx -= (p + knockback) * normalX; player.vy -= (p + knockback) * normalY;
-                ai.vx += (p + knockback) * normalX; ai.vy += (p + knockback) * normalY;
-
-                const playerTypeAdv = getTypeAdvantage(player.type, ai.type);
-                const aiTypeAdv = getTypeAdvantage(ai.type, player.type);
-
-                const baseSpinDamage = 45;
-                const baseHpDamage = player.type === 'Attack' ? 25 : 10;
-                const baseAiHpDamage = ai.type === 'Attack' ? 25 : 10;
-
-                const playerSpinDamage = Math.max(1, ai.stats.attack - player.stats.defense) * baseSpinDamage * aiTypeAdv;
-                const aiSpinDamage = Math.max(1, player.stats.attack - ai.stats.defense) * baseSpinDamage * playerTypeAdv;
-
-                const playerHpDamage = Math.max(1, ai.stats.attack - player.stats.defense) * baseAiHpDamage * aiTypeAdv * (1 / player.damageReduction);
-                const aiHpDamage = Math.max(1, player.stats.attack - ai.stats.defense) * baseHpDamage * playerTypeAdv * (1 / ai.damageReduction);
-
-                player.spin -= playerSpinDamage; 
-                ai.spin -= aiSpinDamage;
-                player.hp -= playerHpDamage;
-                ai.hp -= aiHpDamage;
-                
-                player.chargePower(ai.stats.attack * 2.5);
-                ai.chargePower(player.stats.attack * 2.5);
-                
-                logToBattle("COLISÃO!", 'log-narrator');
-                logToBattle(`${ai.name} causa ${Math.round(playerHpDamage)} de dano ao HP!`, 'log-ai');
-                logToBattle(`${player.name} causa ${Math.round(aiHpDamage)} de dano ao HP!`, 'log-player');
-            }
-            
-            beys.forEach(bey => {
-                const distFromCenter = Math.hypot(bey.x - center.x, bey.y - center.y);
-                if (distFromCenter > stadiumRadius - bey.radius) {
-                    const nx = (bey.x - center.x) / distFromCenter;
-                    const ny = (bey.y - center.y) / distFromCenter;
-                    const dot = bey.vx * nx + bey.vy * ny;
-                    bey.vx -= 1.8 * dot * nx;
-                    bey.vy -= 1.8 * dot * ny;
-                    bey.x = center.x + nx * (stadiumRadius - bey.radius);
-                    bey.y = center.y + ny * (stadiumRadius - bey.radius);
-                    bey.spin -= 150;
-                }
-            });
-        }
-        
-        function triggerShake(intensity = 4, duration = 400) { 
-            gameContainer.animate([
-                { transform: `translate3d(0, 0, 0)` },
-                { transform: `translate3d(-${intensity}px, 0, 0)` },
-                { transform: `translate3d(${intensity*1.2}px, 0, 0)` },
-                { transform: `translate3d(-${intensity*1.5}px, 0, 0)` },
-                { transform: `translate3d(${intensity*1.2}px, 0, 0)` },
-                { transform: `translate3d(0, 0, 0)` }
-            ], {
-                duration: duration,
-                easing: 'ease-in-out'
-            });
-        }
-        
-        function createCollisionSparks(x, y) {
-            const sparkCount = 60 + Math.random() * 30;
-            for (let i = 0; i < sparkCount; i++) { 
-                const color = Math.random() > 0.5 ? player.shadowColor : ai.shadowColor;
-                const options = { life: Math.random() * 50 + 30, size: Math.random() * 5 + 2, speed: Math.random() * 8 + 4 };
-                particles.push(new Particle(x, y, color, 'collision', options)); 
-            }
-        }
-
-        function checkWinConditions() {
-            if (!gameActive) return;
-            const playerLost = player.hp <= 0 || player.spin <= 0;
-            const aiLost = ai.hp <= 0 || ai.spin <= 0;
-
-            if (playerLost || aiLost) {
-                gameActive = false;
-                if (playerLost && aiLost) {
-                    handleEndGame("Empate! Ambos os Beys pararam!", false);
-                } else if (playerLost) {
-                    handleEndGame(`${ai.name} vence por ${player.hp <= 0 ? 'Knockout' : 'Finish por Rotação'}!`, false);
-                } else if (aiLost) {
-                    handleEndGame(`${player.name} vence por ${ai.hp <= 0 ? 'Knockout' : 'Finish por Rotação'}!`, true);
-                }
-            }
-        }
-
-        function handleEndGame(message, playerWon) {
-            logToBattle(message, 'log-narrator');
-            if (playerWon) {
-                currentStage++;
-                setTimeout(showUpgradeScreen, 2000);
-            } else {
-                setTimeout(showGameOverScreen, 2000);
-            }
-        }
-
-        function showUpgradeScreen() {
-            gameArea.style.display = 'none';
-            upgradeScreen.style.display = 'flex';
-            const upgradeOptionsContainer = document.getElementById('upgrade-options');
-            upgradeOptionsContainer.innerHTML = '';
-
-            const availableUpgrades = [...UPGRADES];
-            for (let i = 0; i < 3; i++) {
-                if (availableUpgrades.length === 0) break;
-                const randomIndex = Math.floor(Math.random() * availableUpgrades.length);
-                const upgrade = availableUpgrades.splice(randomIndex, 1)[0];
-                
-                const button = document.createElement('button');
-                button.className = 'upgrade-btn w-full';
-                button.textContent = upgrade.text;
-                button.onclick = () => {
-                    upgrade.apply(player);
-                    upgradeScreen.style.display = 'none';
-                    gameArea.style.display = 'flex';
-                    startNextBattle();
-                };
-                upgradeOptionsContainer.appendChild(button);
-            }
-        }
-
-        function showGameOverScreen() {
-            gameArea.style.display = 'none';
-            gameOverScreen.style.display = 'flex';
-            document.getElementById('finalScore').textContent = `Você sobreviveu ${currentStage - 1} estágio(s).`;
-        }
-
-        function drawStadium() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // Corrige o bug de r0 negativo
-            const outerRadius = Math.max(0, stadiumRadius + 40);
-            const innerRadius = Math.max(0, stadiumRadius);
-
-            const g = ctx.createRadialGradient(center.x, center.y, innerRadius, center.x, center.y, outerRadius);
-            g.addColorStop(0, '#003049');
-            g.addColorStop(1, '#001d2d');
-            ctx.beginPath();
-            ctx.arc(center.x, center.y, outerRadius, 0, 2 * Math.PI);
-            ctx.fillStyle = g;
-            ctx.fill();
-            
-            const ig = ctx.createRadialGradient(center.x, center.y, 0, center.x, center.y, innerRadius);
-            ig.addColorStop(0, '#0096c7');
-            ig.addColorStop(0.8, '#0077b6');
-            ig.addColorStop(1, '#023e8a');
-            ctx.beginPath();
-            ctx.arc(center.x, center.y, innerRadius, 0, 2 * Math.PI);
-            ctx.fillStyle = ig;
-            ctx.fill();
-            
-            ctx.strokeStyle = 'rgba(144, 224, 239, 0.5)';
-            ctx.lineWidth = 5;
-            ctx.beginPath();
-            ctx.arc(center.x, center.y, innerRadius, 0, 2 * Math.PI);
-            ctx.stroke();
-        }
-        
-        function updateAndDrawParticles(deltaTime) { for (let i = particles.length - 1; i >= 0; i--) { const p = particles[i]; p.update(deltaTime); p.draw(); if (p.life <= 0) { particles.splice(i, 1); }}}
-        function logToBattle(message, className) { const p = document.createElement('p'); p.textContent = `> ${message}`; if (className) { p.className = className; } battleLog.appendChild(p); battleLog.scrollTop = battleLog.scrollHeight;}
-        function clearLog() { battleLog.innerHTML = ''; }
-
-        function updateDynamicUI() {
-            if (!player || !ai) return;
-            document.getElementById('player-hp-bar').style.width = `${Math.max(0, player.hp / player.baseStats.hp) * 100}%`;
-            document.getElementById('player-spin-bar').style.width = `${Math.max(0, player.spin / player.baseStats.stamina) * 100}%`;
-            document.getElementById('player-power-bar').style.width = `${player.power}%`;
-            
-            const isPlayerDisabled = !player.isActive || player.specialActive || !gameActive;
-            const playerAtkBtn = document.getElementById('player-attack-btn');
-            const playerRplBtn = document.getElementById('player-repel-btn');
-            const playerSpcBtn = document.getElementById('player-special-btn');
-            
-            playerAtkBtn.disabled = isPlayerDisabled || player.power < ATTACK_COST;
-            playerRplBtn.disabled = isPlayerDisabled || player.power < REPEL_COST;
-            playerSpcBtn.disabled = isPlayerDisabled || player.power < SPECIAL_COST;
-
-            playerAtkBtn.classList.toggle('ready', !playerAtkBtn.disabled);
-            playerRplBtn.classList.toggle('ready', !playerRplBtn.disabled);
-            playerSpcBtn.classList.toggle('ready', !playerSpcBtn.disabled);
-            playerSpcBtn.style.setProperty('--shadow-color', player.shadowColor);
-
-            document.getElementById('ai-hp-bar').style.width = `${Math.max(0, ai.hp / ai.baseStats.hp) * 100}%`;
-            document.getElementById('ai-spin-bar').style.width = `${Math.max(0, ai.spin / ai.baseStats.stamina) * 100}%`;
-            document.getElementById('ai-power-bar').style.width = `${ai.power}%`;
-        }
-
-        // --- EVENT LISTENERS ---
-        startBattleBtn.addEventListener('click', startNewRun);
-        restartBtn.addEventListener('click', () => {
-            gameOverScreen.style.display = 'none';
-            selectionScreen.style.display = 'flex';
-        });
-        document.getElementById('player-attack-btn').addEventListener('click', () => player.performDashAttack(ai));
-        document.getElementById('player-repel-btn').addEventListener('click', () => player.performEvasiveDash(ai));
-        document.getElementById('player-special-btn').addEventListener('click', () => player.activateSpecial(ai));
-        
-        // --- INICIALIZAÇÃO ---
-        populateSelectors();
-        
-        const canvasEl = document.getElementById('beystadium');
-        function resizeCanvas() {
-            const container = document.getElementById('gameContainer');
-            const size = container.clientWidth;
-            canvasEl.width = size;
-            canvasEl.height = size;
-            
-            // Recalcula o raio e o centro com base no novo tamanho
-            stadiumRadius = (size / 2) - 20; // Menos padding
-            center.x = size / 2;
-            center.y = size / 2;
-            
-            drawStadium();
-        }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-        
-        drawStadium();
-    });
-    </script>
 </body>
 </html>
+

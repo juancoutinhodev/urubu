@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beyblade SUPREMO: Ascensão Roguelite</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400..900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Orbitron', sans-serif;
+            background-color: #0d1117;
+            color: #c9d1d9;
+            overflow-y: auto;
+        }
+        .screen {
+            background-color: rgba(13, 17, 23, 0.95);
+            border: 1px solid #30363d;
+        }
+        .upgrade-btn {
+            background-color: #21262d;
+            border: 1px solid #30363d;
+            transition: all 0.2s ease-in-out;
+        }
+        .upgrade-btn:hover {
+            border-color: #fca311;
+            transform: translateY(-5px);
+            box-shadow: 0 0 15px #fca311;
+        }
+        .action-btn.ready {
+            box-shadow: 0 0 10px var(--shadow-color);
+        }
+        .stat-bar-container { background-color: #30363d; }
+        .stat-bar { transition: width 0.3s ease-out; }
+        #special-flash {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 9999;
+            animation: flash 0.7s ease-out forwards;
+        }
+        @keyframes flash {
+            0% { opacity: 0; }
+            20% { opacity: 0.8; }
+            100% { opacity: 0; }
+        }
+    </style>
+</head>
+<body class="bg-gray-900 flex items-center justify-center min-h-screen p-4">
+
+    <div id="main-container" class="w-full max-w-7xl mx-auto">
+
+        <div id="selectionScreen" class="screen rounded-lg p-6 md:p-8 text-center flex flex-col items-center gap-6">
+            <h1 class="text-3xl md:text-5xl font-bold">ASCENSÃO ROGUELITE</h1>
+            <p class="text-base md:text-lg text-gray-400">Escolha seu Beyblade inicial para começar a jornada.</p>
+            <div class="selector">
+                <select id="playerBeySelect" class="bg-gray-800 border border-gray-600 rounded-lg p-3 text-lg md:text-xl w-72 md:w-80 text-center appearance-none"></select>
+            </div>
+            <button id="startBattleBtn" class="bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-bold py-3 px-6 md:py-4 md:px-8 rounded-lg text-xl md:text-2xl transition-transform transform hover:scale-105">Iniciar Aventura!</button>
+        </div>
+        
+        <div id="gameArea" class="hidden flex flex-col items-center">
+            <div id="gameContainer" class="relative rounded-2xl p-2 border-2 border-gray-700 bg-black w-full max-w-[620px]">
+                <div id="stageCounter" class="absolute top-4 left-1/2 -translate-x-1/2 text-2xl md:text-4xl font-bold text-white/50 z-10"></div>
+                <canvas id="beystadium" class="w-full h-auto" width="600" height="600"></canvas>
+            </div>
+
+            <div id="controls" class="mt-4 flex flex-col md:flex-row gap-4 w-full max-w-5xl">
+                <div id="player-panel" class="player-panel rounded-lg p-4 border-2 flex-1">
+                    <h2 id="player-name" class="text-xl md:text-2xl font-bold truncate"></h2>
+                    <div class="space-y-2">
+                        <div>
+                            <label class="text-xs md:text-sm font-semibold">HP</label>
+                            <div class="stat-bar-container rounded-full overflow-hidden"><div id="player-hp-bar" class="stat-bar h-4 rounded-full bg-gradient-to-r from-green-400 to-emerald-600"></div></div>
+                        </div>
+                        <div>
+                            <label class="text-xs md:text-sm font-semibold">ROTAÇÃO</label>
+                            <div class="stat-bar-container rounded-full overflow-hidden"><div id="player-spin-bar" class="stat-bar h-4 rounded-full"></div></div>
+                        </div>
+                        <div>
+                            <label class="text-xs md:text-sm font-semibold">ESPECIAL</label>
+                            <div class="stat-bar-container rounded-full overflow-hidden"><div id="player-power-bar" class="stat-bar h-4 rounded-full"></div></div>
+                        </div>
+                    </div>
+                    <div class="action-buttons mt-3 grid grid-cols-3 gap-2">
+                        <button id="player-attack-btn" class="action-btn p-3 rounded-lg font-bold">Atacar</button>
+                        <button id="player-repel-btn" class="action-btn p-3 rounded-lg font-bold">Repelir</button>
+                        <button id="player-special-btn" class="action-btn p-3 rounded-lg font-bold">Poder</button>
+                    </div>
+                </div>
+                
+                <div id="ai-panel" class="player-panel rounded-lg p-4 border-2 flex-1">
+                     <h2 id="ai-name" class="text-xl md:text-2xl font-bold truncate"></h2>
+                    <div class="space-y-2">
+                        <div>
+                            <label class="text-xs md:text-sm font-semibold">HP</label>
+                            <div class="stat-bar-container rounded-full overflow-hidden"><div id="ai-hp-bar" class="stat-bar h-4 rounded-full bg-gradient-to-r from-green-400 to-emerald-600"></div></div>
+                        </div>
+                        <div>
+                            <label class="text-xs md:text-sm font-semibold">ROTAÇÃO</label>
+                            <div class="stat-bar-container rounded-full overflow-hidden"><div id="ai-spin-bar" class="stat-bar h-4 rounded-full"></div></div>
+                        </div>
+                        <div>
+                            <label class="text-xs md:text-sm font-semibold">ESPECIAL</label>
+                            <div class="stat-bar-container rounded-full overflow-hidden"><div id="ai-power-bar" class="stat-bar h-4 rounded-full"></div></div>
+                        </div>
+                    </div>
+                    <div class="mt-3 text-center text-lg font-bold text-red-500">ADVERSÁRIO</div>
+                </div>
+            </div>
+
+            <div id="battleLog" class="mt-4 w-full max-w-5xl h-24 bg-gray-800 border border-gray-700 rounded-lg p-2 text-sm font-mono overflow-y-scroll"></div>
+        </div>
+
+        <div id="upgradeScreen" class="screen hidden w-11/12 max-w-3xl">
+            <h2 class="text-2xl md:text-4xl font-bold">VITÓRIA!</h2>
+            <p class="text-base md:text-lg text-gray-400">Escolha uma melhoria.</p>
+            <div id="upgrade-options" class="flex flex-col md:flex-row gap-4 w-full"></div>
+        </div>
+
+        <div id="gameOverScreen" class="screen hidden w-11/12 max-w-lg">
+            <h2 class="text-3xl md:text-5xl font-bold text-red-500">FIM DE JOGO</h2>
+            <p id="finalScore" class="text-xl md:text-2xl"></p>
+            <button id="restartBtn" class="bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-bold py-3 px-6 rounded-lg text-xl">Jogar Novamente</button>
+        </div>
+    </div>
+
+    <script>
+    // --- CONSTANTES GLOBAIS ---
+    const ATTACK_COST = 20;
+    const REPEL_COST = 15;
+    const SPECIAL_COST = 100;
+
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- DATABASE DE BEYBLADES ---
+        const BEYBLADE_DATA = [
+    { id: 'valtryek', name: 'Valtryek V2', type: 'Attack', color: '#0096c7', shadowColor: '#48cae4', stats: { attack: 22, defense: 4, stamina: 70000, hp: 1800 }, specialAbility: { name: "Lançamento Gênese Rush", duration: 20000, effect: (self) => { self.stats.attack *= 6; self.specialAttackCount = 5; self.specialAttackCooldown = 0; } } },
+    { id: 'spryzen', name: 'Spryzen S2', type: 'Balance', color: '#d00000', shadowColor: '#e5383b', stats: { attack: 14, defense: 14, stamina: 85000, hp: 2200 }, specialAbility: { name: "Contra-ataque Lendário", duration: 20000, effect: (self) => { self.stats.defense *= 6; self.stats.attack *= 3; } } },
+    { id: 'roktavor', name: 'Roktavor R2', type: 'Stamina', color: '#f77f00', shadowColor: '#fcbf49', stats: { attack: 8, defense: 10, stamina: 150000, hp: 2500 }, specialAbility: { name: "Zona de Resistência", duration: 20000, effect: (self) => { self.damageReduction = 0.5; logToBattle(`${self.name} reforça sua resistência!`, `log-${self.isPlayer ? 'player' : 'ai'}`); } } },
+    { id: 'doomscizor', name: 'Doomscizor D2', type: 'Attack', color: '#5e60ce', shadowColor: '#9394ff', stats: { attack: 24, defense: 3, stamina: 65000, hp: 1700 }, specialAbility: { name: "Caçada Dupla", duration: 20000, effect: (self) => { self.stats.attack *= 4; self.vx *= 1.5; self.vy *= 1.5; } } },
+    { id: 'kerbeus', name: 'Kerbeus K2', type: 'Defense', color: '#52b788', shadowColor: '#95d5b2', stats: { attack: 6, defense: 20, stamina: 110000, hp: 2900 }, specialAbility: { name: "Defesa em Corrente", duration: 20000, effect: (self) => { self.damageReduction = 0.7; logToBattle(`${self.name} cria uma barreira de correntes!`, `log-${self.isPlayer ? 'player' : 'ai'}`); } } },
+    { id: 'satomb', name: 'Kinetic Satomb', type: 'Defense', color: '#7209b7', shadowColor: '#b180d7', stats: { attack: 10, defense: 18, stamina: 100000, hp: 2800 }, specialAbility: { name: "Ciclo de Defesa", duration: 20000, effect: (self) => { self.damageReduction = 0.75; logToBattle(`${self.name} ativa seu ciclo defensivo!`, `log-${self.isPlayer ? 'player' : 'ai'}`); } } },
+    { id: 'pegasus', name: 'Galaxy Pegasus', type: 'Attack', color: '#6bb7d9', shadowColor: '#aee1f9', stats: { attack: 26, defense: 2, stamina: 68000, hp: 1700 }, specialAbility: { name: "Stardust Driver", duration: 20000, effect: (self, opponent) => { self.stats.attack *= 7; opponent.hp -= self.stats.attack * 10; self.vy += 25; } } },
+    { id: 'ldrago', name: 'L-Drago Destructor', type: 'Attack', color: '#8d04a8', shadowColor: '#c866de', stats: { attack: 20, defense: 5, stamina: 75000, hp: 1900 }, specialAbility: { name: "Roubo de Imperador Dragão", duration: 20000, effect: (self, opponent) => { self.stats.attack *= 2; opponent.spin -= 8000; self.spin += 5000; opponent.hp -= 300; self.hp += 300;} } },
+    { id: 'leone', name: 'Rock Leone', type: 'Defense', color: '#3c8a2e', shadowColor: '#72d160', stats: { attack: 5, defense: 24, stamina: 120000, hp: 3200 }, specialAbility: { name: "Muralha de Leão", duration: 20000, effect: (self) => { self.damageReduction = 0.5; self.vx = 0; self.vy = 0; logToBattle(`${self.name} se torna uma fortaleza imóvel!`, `log-${self.isPlayer ? 'player' : 'ai'}`);} } },
+    { id: 'fafnir', name: 'Fafnir F3', type: 'Stamina', color: '#ffd60a', shadowColor: '#ffea00', stats: { attack: 9, defense: 10, stamina: 160000, hp: 2300 }, specialAbility: { name: "Dreno Espiral", duration: 20000, effect: (self, opponent) => { opponent.spin -= 10000; self.spin += 5000;} } },
+    { id: 'ghostbey', name: 'GhostBey', type: 'Balance', color: '#9d4edd', shadowColor: '#c77dff', stats: { attack: 20, defense: 15, stamina: 135000, hp: 4500 }, specialAbility: { name: "Ataque Intangível", duration: 20000, effect: (self, opponent) => { self.damageReduction = 0.9; self.stats.attack *= 4; opponent.hp -= 800; } } }
+];
+const BOSS_DATA = [
+    { id: 'nemesis', name: 'Diablo Nemesis (BOSS)', type: 'Balance', color: '#141414', shadowColor: '#ff4d6d', stats: { attack: 30, defense: 30, stamina: 250000, hp: 5000 }, specialAbility: { name: "Julgamento Final", duration: 20000, effect: (self) => { self.stats.attack *= 4; self.stats.defense *= 4; } } }
+];
+        const UPGRADES = [
+    // Upgrades básicos
+    { id: 'hp_1', text: "+20% HP Máx", apply: (bey) => { bey.baseStats.hp *= 1.20; } },
+    { id: 'stamina_1', text: "+15% Rotação Máx", apply: (bey) => { bey.baseStats.stamina *= 1.15; } },
+    { id: 'attack_1', text: "+15% Ataque", apply: (bey) => { bey.baseStats.attack *= 1.15; } },
+    { id: 'defense_1', text: "+15% Defesa", apply: (bey) => { bey.baseStats.defense *= 1.15; } },
+
+    // Upgrades de cura e recuperação
+    { id: 'heal_1', text: "Curar 40% HP", apply: (bey) => { bey.hp = Math.min(bey.baseStats.hp, bey.hp + bey.baseStats.hp * 0.40); } },
+    { id: 'spin_heal_1', text: "Recuperar 30% Rotação", apply: (bey) => { bey.spin = Math.min(bey.baseStats.stamina, bey.spin + bey.baseStats.stamina * 0.30); } },
+
+    // Upgrades de velocidade e movimento
+    { id: 'speed_1', text: "+10% Velocidade", apply: (bey) => { window.TIME_SCALE *= 1.10; } },
+    { id: 'burst_speed', text: "Aceleração instantânea (+30% por 5s)", apply: (bey) => { 
+        window.TIME_SCALE *= 1.30;
+        setTimeout(() => { window.TIME_SCALE /= 1.30; }, 5000); 
+    }},
+
+    // Upgrades de combate
+    { id: 'critical_chance', text: "+15% Chance de Acerto Crítico", apply: (bey) => { bey.criticalChance = (bey.criticalChance || 0) + 0.15; } },
+    { id: 'next_critical', text: "Próximo ataque é crítico", apply: (bey) => { bey.nextAttackIsCritical = true; } },
+    { id: 'damage_reflect', text: "10% de chance de refletir dano", apply: (bey) => { bey.damageReflect = 0.10; } },
+
+    // Upgrades defensivos
+    { id: 'damage_absorb', text: "15% de chance de anular dano recebido", apply: (bey) => { bey.damageAbsorbChance = 0.15; } },
+    { id: 'hp_regen', text: "Regeneração de 1% HP/s", apply: (bey) => { bey.hpRegenRate = (bey.hpRegenRate || 0) + 0.01; } },
+
+    // Upgrades de habilidade
+    { id: 'ability_cooldown', text: "-20% Recarga de Habilidade", apply: (bey) => { bey.specialAbility.cooldownReduction = (bey.specialAbility.cooldownReduction || 0) + 0.20; } },
+    { id: 'ability_duration', text: "+15% Duração da Habilidade", apply: (bey) => { bey.specialAbility.duration *= 1.15; } }
+];
+
+        // --- VARIÁVEIS GLOBAIS ---
+        const canvas = document.getElementById('beystadium');
+        const ctx = canvas.getContext('2d');
+        const gameContainer = document.getElementById('gameContainer');
+        let stadiumRadius = canvas.width / 2 - 40; 
+        let center = { x: canvas.width / 2, y: canvas.height / 2 };
+
+        const selectionScreen = document.getElementById('selectionScreen');
+        const gameArea = document.getElementById('gameArea');
+        const playerBeySelect = document.getElementById('playerBeySelect');
+        const startBattleBtn = document.getElementById('startBattleBtn');
+
+        const battleLog = document.getElementById('battleLog');
+        const upgradeScreen = document.getElementById('upgradeScreen');
+        const gameOverScreen = document.getElementById('gameOverScreen');
+        const restartBtn = document.getElementById('restartBtn');
+
+        let player, ai;
+        let beys = [];
+        let gameActive = false;
+        let lastTime = 0;
+        let particles = [];
+        let aiDecisionTimer = 0;
+        let currentStage = 0;
+        window.TIME_SCALE = 2.8;
+
+        // --- CLASSES ---
+        class Beyblade {
+            constructor(data, isPlayer, stage = 1) {
+                this.id = data.id;
+                this.name = data.name;
+                this.type = data.type;
+                this.color = data.color;
+                this.shadowColor = data.shadowColor;
+                this.baseStats = JSON.parse(JSON.stringify(data.stats)); 
+                this.stats = JSON.parse(JSON.stringify(data.stats));
+                this.specialAbility = data.specialAbility;
+                
+                this.isPlayer = isPlayer;
+                this.radius = 15;
+
+                if (!isPlayer) {
+                    const scale = 1 + (stage - 1) * 0.1;
+                    this.baseStats.hp *= scale;
+                    this.baseStats.stamina *= scale;
+                    this.baseStats.attack *= scale;
+                    this.baseStats.defense *= scale;
+                }
+                
+                this.reset();
+            }
+
+            reset() {
+                this.x = 0; this.y = 0;
+                this.vx = 0; this.vy = 0;
+                this.hp = this.baseStats.hp;
+                this.spin = this.baseStats.stamina;
+                this.power = 0;
+                this.isActive = true;
+                this.specialActive = false;
+                this.specialDuration = 0;
+                this.stats = JSON.parse(JSON.stringify(this.baseStats));
+                this.damageReduction = 1.0;
+                this.afterImages = [];
+                this.afterImageCooldown = 0;
+                this.specialAttackCount = 0;
+                this.specialAttackCooldown = 0;
+            }
+
+            draw() {
+                if (!this.isActive) return;
+
+                // --- DESENHA O NICKNAME PRIMEIRO PARA FICAR NO FUNDO ---
+                const cleanName = this.name.replace(/\s*\(.*\)\s*/, '');
+                const nameParts = cleanName.split(' ');
+                const initials = nameParts.map(part => part[0]).join('');
+
+                ctx.font = 'bold 14px Orbitron';
+                ctx.fillStyle = 'white';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'bottom'; // ALTERAÇÃO: Alinha pela base do texto
+                ctx.shadowColor = 'black';
+                ctx.shadowBlur = 4;
+                
+                // ALTERAÇÃO: Desenha o texto ACIMA do Beyblade
+                ctx.fillText(initials, this.x, this.y - this.radius - 5);
+                
+                // Limpa a sombra para não afetar o Beyblade
+                ctx.shadowColor = 'transparent';
+                ctx.shadowBlur = 0;
+                
+                // --- DESENHA O BEYBLADE E EFEITOS ---
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+
+                if (this.afterImages.length > 0) {
+                    this.afterImages.forEach((image, index) => {
+                        ctx.globalAlpha = 0.05 + (0.4 * (index / this.afterImages.length));
+                        ctx.beginPath();
+                        ctx.arc(image.x, image.y, this.radius, 0, Math.PI * 2);
+                        ctx.fillStyle = this.shadowColor;
+                        ctx.shadowColor = this.shadowColor;
+                        ctx.shadowBlur = 15;
+                        ctx.fill();
+                    });
+                }
+                
+                ctx.shadowColor = this.shadowColor;
+                ctx.shadowBlur = 25;
+
+                if (this.specialActive && this.id !== 'valtryek') {
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius + 12, 0, Math.PI * 2);
+                    ctx.fillStyle = this.specialAbility.auraColor || this.shadowColor;
+                    ctx.globalAlpha = 0.6 + Math.random() * 0.4;
+                    ctx.fill();
+                }
+
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = this.color;
+                ctx.fill();
+                
+                ctx.restore();
+
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.strokeStyle = 'black';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y);
+                const angle = (Date.now() / 20);
+                ctx.lineTo(this.x + this.radius * Math.cos(angle), this.y + this.radius * Math.sin(angle));
+                ctx.strokeStyle = 'white';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+            }
+
+            update(deltaTime) {
+                if (!this.isActive) return;
+
+                const distFromCenter = Math.hypot(this.x - center.x, this.y - center.y);
+                if (distFromCenter > 1) {
+                    let gravityFactor;
+                    switch(this.type) {
+                        case 'Defense': gravityFactor = 0.15; break;
+                        case 'Stamina': gravityFactor = 0.12; break;
+                        case 'Attack': gravityFactor = 0.03; break;
+                        default: gravityFactor = 0.08; break;
+                    }
+
+                    const accelX = ((center.x - this.x) / distFromCenter) * gravityFactor;
+                    const accelY = ((center.y - this.y) / distFromCenter) * gravityFactor;
+                    this.vx += accelX * deltaTime;
+                    this.vy += accelY * deltaTime;
+                }
+
+                this.x += this.vx * deltaTime;
+                this.y += this.vy * deltaTime;
+                this.spin -= 0.02 * deltaTime;
+                this.vx *= 0.998;
+                this.vy *= 0.998;
+
+                if (Math.random() > 0.02) {
+                    particles.push(new Particle(this.x, this.y, this.shadowColor, 'movement'));
+                }
+
+                if (this.specialActive) {
+                    this.specialDuration -= deltaTime;
+                    if (this.id === 'valtryek' && this.specialAttackCount > 0) {
+                        this.afterImageCooldown -= deltaTime;
+                        if(this.afterImageCooldown <= 0) {
+                             this.afterImages.push({ x: this.x, y: this.y });
+                             if (this.afterImages.length > 8) this.afterImages.shift();
+                             this.afterImageCooldown = 1; 
+                        }
+
+                        this.specialAttackCooldown -= deltaTime;
+                        if (this.specialAttackCooldown <= 0) {
+                            this.specialAttackCount--;
+                            const opponent = beys.find(b => b !== this);
+                            if (opponent && opponent.isActive) {
+                                const angle = Math.atan2(opponent.y - this.y, opponent.x - this.x);
+                                const impulse = 35;
+                                this.vx = Math.cos(angle) * impulse;
+                                this.vy = Math.sin(angle) * impulse;
+                                logToBattle("FLASH!", `log-${this.isPlayer ? 'player' : 'ai'}`);
+                            }
+                            this.specialAttackCooldown = 20;
+                        }
+                    }
+                    if (this.specialDuration <= 0) this.deactivateSpecial();
+                }
+
+                if (this.spin <= 0 || this.hp <= 0) {
+                    this.spin = 0;
+                    this.hp = 0;
+                    this.isActive = false;
+                }
+            }
+            
+            chargePower(amount) {
+                if(this.power < 100) { this.power = Math.min(100, this.power + amount); }
+            }
+
+            performDashAttack(opponent) {
+                if (!this.isActive || this.specialActive || this.power < ATTACK_COST) return;
+                this.power -= ATTACK_COST;
+                logToBattle(`${this.name} usa Dash de Ataque!`, `log-${this.isPlayer ? 'player' : 'ai'}`);
+                const angle = Math.atan2(opponent.y - this.y, opponent.x - this.x);
+                const impulse = 18;
+                this.vx += Math.cos(angle) * impulse;
+                this.vy += Math.sin(angle) * impulse;
+            }
+
+            performEvasiveDash(opponent) {
+                if (!this.isActive || this.specialActive || this.power < REPEL_COST) return;
+                this.power -= REPEL_COST;
+                logToBattle(`${this.name} usa Dash de Fuga!`, `log-${this.isPlayer ? 'player' : 'ai'}`);
+                const angle = Math.atan2(opponent.y - this.y, opponent.x - this.x);
+                const impulse = 15;
+                this.vx -= Math.cos(angle) * impulse;
+                this.vy -= Math.sin(angle) * impulse;
+            }
+            
+            activateSpecial(opponent) {
+                if (!this.isActive || this.specialActive || this.power < SPECIAL_COST) return;
+                this.power = 0;
+                this.specialActive = true;
+                this.specialDuration = this.specialAbility.duration;
+                this.specialAbility.effect(this, opponent);
+                logToBattle(`${this.name} ativa: ${this.specialAbility.name}!`, `log-${this.isPlayer ? 'player' : 'ai'}`);
+                
+                const flashEffect = document.createElement('div');
+                flashEffect.id = 'special-flash';
+                document.body.appendChild(flashEffect);
+                setTimeout(() => flashEffect.remove(), 700);
+                triggerShake(8, 700);
+            }
+
+            deactivateSpecial() {
+                this.specialActive = false;
+                this.stats = { ...this.baseStats };
+                this.damageReduction = 1.0;
+                this.specialAttackCount = 0;
+                if (this.id === 'valtryek') this.afterImages = [];
+                logToBattle(`${this.name} voltou ao normal.`, 'log-narrator');
+            }
+        }
+        
+        class Particle {
+            constructor(x, y, baseColor, type = 'collision', options = {}) {
+                this.x = x; this.y = y;
+                this.baseColor = baseColor;
+                this.life = options.life || Math.random() * 35 + 20;
+                this.size = options.size || Math.random() * 3 + 1.5;
+                const speed = options.speed || Math.random() * 2 + 1;
+                const angle = options.angle || Math.random() * Math.PI * 2;
+                this.vx = Math.cos(angle) * speed;
+                this.vy = Math.sin(angle) * speed;
+                this.type = type;
+            }
+            update(deltaTime) { this.x += this.vx * deltaTime; this.y += this.vy * deltaTime; this.life -= deltaTime; }
+            draw() {
+                ctx.save();
+                ctx.globalCompositeOperation = 'lighter';
+                ctx.globalAlpha = Math.max(0, this.life / 40);
+                ctx.shadowColor = this.baseColor;
+                ctx.shadowBlur = this.type === 'movement' ? 25 : 20;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fillStyle = this.baseColor;
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
+        // --- FUNÇÕES DE LÓGICA DO JOGO ---
+        function populateSelectors() {
+            BEYBLADE_DATA.forEach(bey => {
+                const option = document.createElement('option');
+                option.value = bey.id;
+                option.textContent = `${bey.name} (${bey.type})`;
+                playerBeySelect.appendChild(option.cloneNode(true));
+            });
+        }
+
+        function startNewRun() {
+            const playerData = BEYBLADE_DATA.find(b => b.id === playerBeySelect.value);
+            player = new Beyblade(playerData, true);
+            currentStage = 1;
+            window.TIME_SCALE = 2.8;
+            
+            selectionScreen.style.display = 'none';
+            gameOverScreen.style.display = 'none';
+            gameArea.style.display = 'flex';
+            
+            startNextBattle();
+        }
+
+        function startNextBattle() {
+            let aiData;
+            if (currentStage % 10 === 0) {
+                aiData = BOSS_DATA[Math.floor(Math.random() * BOSS_DATA.length)];
+            } else {
+                const opponentPool = BEYBLADE_DATA.filter(b => b.id !== player.id);
+                aiData = opponentPool[Math.floor(Math.random() * opponentPool.length)];
+            }
+            ai = new Beyblade(aiData, false, currentStage);
+            beys = [player, ai];
+
+            player.hp = player.baseStats.hp;
+            player.spin = player.baseStats.stamina;
+            player.power = 0;
+
+            setupUI();
+            
+            gameActive = true;
+            lastTime = performance.now();
+            clearLog();
+            logToBattle(`Estágio ${currentStage}! Batalha contra ${ai.name}!`, 'log-narrator');
+            
+            particles = [];
+            aiDecisionTimer = 0;
+
+            player.x = center.x - 180; player.y = center.y - 80;
+            player.vx = 25; player.vy = Math.random() * 15 - 7.5;
+
+            ai.x = center.x + 180; ai.y = center.y + 80;
+            ai.vx = -25; ai.vy = Math.random() * 15 - 7.5;
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function setupUI() {
+            document.getElementById('stageCounter').textContent = `Estágio ${currentStage}`;
+            document.getElementById('player-name').textContent = player.name;
+            document.getElementById('player-panel').style.borderColor = player.shadowColor;
+            document.getElementById('player-panel').style.boxShadow = `0 0 15px ${player.shadowColor}`;
+            document.getElementById('player-spin-bar').style.backgroundColor = player.color;
+            document.getElementById('player-power-bar').style.background = `linear-gradient(90deg, ${player.shadowColor}, ${player.color})`;
+            
+            document.getElementById('ai-name').textContent = ai.name;
+            document.getElementById('ai-panel').style.borderColor = ai.shadowColor;
+            document.getElementById('ai-panel').style.boxShadow = `0 0 15px ${ai.shadowColor}`;
+            document.getElementById('ai-spin-bar').style.backgroundColor = ai.color;
+            document.getElementById('ai-power-bar').style.background = `linear-gradient(90deg, ${ai.shadowColor}, ${ai.color})`;
+        }
+
+        function runAI(currentAI, opponent, deltaTime) {
+            if (!currentAI.isActive || !opponent.isActive || !gameActive) return;
+            aiDecisionTimer -= deltaTime;
+            if (aiDecisionTimer <= 0) {
+                 const dist = Math.hypot(currentAI.x - opponent.x, currentAI.y - opponent.y);
+                if (currentAI.power >= SPECIAL_COST && (currentAI.spin < currentAI.baseStats.stamina * 0.5 || currentAI.hp < currentAI.baseStats.hp * 0.5)) {
+                     currentAI.activateSpecial(opponent);
+                } else if (currentAI.power >= ATTACK_COST && dist < 250 && Math.random() < 0.7) {
+                    currentAI.performDashAttack(opponent);
+                } else if (currentAI.power >= REPEL_COST && dist < 100 && Math.random() < 0.5) {
+                    currentAI.performEvasiveDash(opponent);
+                }
+                aiDecisionTimer = Math.random() * 30 + 20;
+            }
+        }
+
+        function gameLoop(currentTime) {
+            if (!gameActive) return;
+            const deltaTime = (currentTime - lastTime) / 16.67 * window.TIME_SCALE;
+            lastTime = currentTime;
+            
+            runAI(ai, player, deltaTime);
+            handleCollisions();
+            beys.forEach(bey => bey.update(deltaTime));
+            checkWinConditions();
+            drawStadium();
+            updateAndDrawParticles(deltaTime);
+            beys.forEach(bey => bey.draw());
+            updateDynamicUI();
+            requestAnimationFrame(gameLoop);
+        }
+
+        function getTypeAdvantage(attackerType, defenderType) {
+            const advantages = { 'Attack': 'Stamina', 'Stamina': 'Defense', 'Defense': 'Attack' };
+            if (advantages[attackerType] === defenderType) return 1.25;
+            if (advantages[defenderType] === attackerType) return 0.75;
+            return 1.0;
+        }
+        
+        function handleCollisions() {
+            if (!gameActive || !player.isActive || !ai.isActive) return;
+            const dx = ai.x - player.x;
+            const dy = ai.y - player.y;
+            const distance = Math.hypot(dx, dy);
+
+            if (distance < player.radius + ai.radius) {
+                triggerShake(4, 400);
+                createCollisionSparks((player.x + ai.x) / 2, (player.y + ai.y) / 2);
+
+                const knockback = 2 + (Math.hypot(player.vx - ai.vx, player.vy - ai.vy) / 10);
+                const normalX = dx / distance;
+                const normalY = dy / distance;
+                const p = 2 * (player.vx * normalX + player.vy * normalY - ai.vx * normalX - ai.vy * normalY) / 2;
+                
+                player.vx -= (p + knockback) * normalX; player.vy -= (p + knockback) * normalY;
+                ai.vx += (p + knockback) * normalX; ai.vy += (p + knockback) * normalY;
+
+                const playerTypeAdv = getTypeAdvantage(player.type, ai.type);
+                const aiTypeAdv = getTypeAdvantage(ai.type, player.type);
+
+                const baseSpinDamage = 45;
+                const baseHpDamage = player.type === 'Attack' ? 25 : 10;
+                const baseAiHpDamage = ai.type === 'Attack' ? 25 : 10;
+
+                const playerSpinDamage = Math.max(1, ai.stats.attack - player.stats.defense) * baseSpinDamage * aiTypeAdv;
+                const aiSpinDamage = Math.max(1, player.stats.attack - ai.stats.defense) * baseSpinDamage * playerTypeAdv;
+
+                const playerHpDamage = Math.max(1, ai.stats.attack - player.stats.defense) * baseAiHpDamage * aiTypeAdv * (1 / player.damageReduction);
+                const aiHpDamage = Math.max(1, player.stats.attack - ai.stats.defense) * baseHpDamage * playerTypeAdv * (1 / ai.damageReduction);
+
+                player.spin -= playerSpinDamage; 
+                ai.spin -= aiSpinDamage;
+                player.hp -= playerHpDamage;
+                ai.hp -= aiHpDamage;
+                
+                player.chargePower(ai.stats.attack * 2.5);
+                ai.chargePower(player.stats.attack * 2.5);
+                
+                logToBattle("COLISÃO!", 'log-narrator');
+                logToBattle(`${ai.name} causa ${Math.round(playerHpDamage)} de dano ao HP!`, 'log-ai');
+                logToBattle(`${player.name} causa ${Math.round(aiHpDamage)} de dano ao HP!`, 'log-player');
+            }
+            
+            beys.forEach(bey => {
+                const distFromCenter = Math.hypot(bey.x - center.x, bey.y - center.y);
+                if (distFromCenter > stadiumRadius - bey.radius) {
+                    const nx = (bey.x - center.x) / distFromCenter;
+                    const ny = (bey.y - center.y) / distFromCenter;
+                    const dot = bey.vx * nx + bey.vy * ny;
+                    bey.vx -= 1.8 * dot * nx;
+                    bey.vy -= 1.8 * dot * ny;
+                    bey.x = center.x + nx * (stadiumRadius - bey.radius);
+                    bey.y = center.y + ny * (stadiumRadius - bey.radius);
+                    bey.spin -= 150;
+                }
+            });
+        }
+        
+        function triggerShake(intensity = 4, duration = 400) { 
+            gameContainer.animate([
+                { transform: `translate3d(0, 0, 0)` },
+                { transform: `translate3d(-${intensity}px, 0, 0)` },
+                { transform: `translate3d(${intensity*1.2}px, 0, 0)` },
+                { transform: `translate3d(-${intensity*1.5}px, 0, 0)` },
+                { transform: `translate3d(${intensity*1.2}px, 0, 0)` },
+                { transform: `translate3d(0, 0, 0)` }
+            ], {
+                duration: duration,
+                easing: 'ease-in-out'
+            });
+        }
+        
+        function createCollisionSparks(x, y) {
+            const sparkCount = 60 + Math.random() * 30;
+            for (let i = 0; i < sparkCount; i++) { 
+                const color = Math.random() > 0.5 ? player.shadowColor : ai.shadowColor;
+                const options = { life: Math.random() * 50 + 30, size: Math.random() * 5 + 2, speed: Math.random() * 8 + 4 };
+                particles.push(new Particle(x, y, color, 'collision', options)); 
+            }
+        }
+
+        function checkWinConditions() {
+            if (!gameActive) return;
+            const playerLost = player.hp <= 0 || player.spin <= 0;
+            const aiLost = ai.hp <= 0 || ai.spin <= 0;
+
+            if (playerLost || aiLost) {
+                gameActive = false;
+                if (playerLost && aiLost) {
+                    handleEndGame("Empate! Ambos os Beys pararam!", false);
+                } else if (playerLost) {
+                    handleEndGame(`${ai.name} vence por ${player.hp <= 0 ? 'Knockout' : 'Finish por Rotação'}!`, false);
+                } else if (aiLost) {
+                    handleEndGame(`${player.name} vence por ${ai.hp <= 0 ? 'Knockout' : 'Finish por Rotação'}!`, true);
+                }
+            }
+        }
+
+        function handleEndGame(message, playerWon) {
+            logToBattle(message, 'log-narrator');
+            if (playerWon) {
+                currentStage++;
+                setTimeout(showUpgradeScreen, 2000);
+            } else {
+                setTimeout(showGameOverScreen, 2000);
+            }
+        }
+
+        function showUpgradeScreen() {
+            gameArea.style.display = 'none';
+            upgradeScreen.style.display = 'flex';
+            const upgradeOptionsContainer = document.getElementById('upgrade-options');
+            upgradeOptionsContainer.innerHTML = '';
+
+            const availableUpgrades = [...UPGRADES];
+            for (let i = 0; i < 3; i++) {
+                if (availableUpgrades.length === 0) break;
+                const randomIndex = Math.floor(Math.random() * availableUpgrades.length);
+                const upgrade = availableUpgrades.splice(randomIndex, 1)[0];
+                
+                const button = document.createElement('button');
+                button.className = 'upgrade-btn w-full';
+                button.textContent = upgrade.text;
+                button.onclick = () => {
+                    upgrade.apply(player);
+                    upgradeScreen.style.display = 'none';
+                    gameArea.style.display = 'flex';
+                    startNextBattle();
+                };
+                upgradeOptionsContainer.appendChild(button);
+            }
+        }
+
+        function showGameOverScreen() {
+            gameArea.style.display = 'none';
+            gameOverScreen.style.display = 'flex';
+            document.getElementById('finalScore').textContent = `Você sobreviveu ${currentStage - 1} estágio(s).`;
+        }
+
+        function drawStadium() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            const outerRadius = Math.max(0, stadiumRadius + 40);
+            const innerRadius = Math.max(0, stadiumRadius);
+
+            const g = ctx.createRadialGradient(center.x, center.y, innerRadius, center.x, center.y, outerRadius);
+            g.addColorStop(0, '#003049');
+            g.addColorStop(1, '#001d2d');
+            ctx.beginPath();
+            ctx.arc(center.x, center.y, outerRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = g;
+            ctx.fill();
+            
+            const ig = ctx.createRadialGradient(center.x, center.y, 0, center.x, center.y, innerRadius);
+            ig.addColorStop(0, '#0096c7');
+            ig.addColorStop(0.8, '#0077b6');
+            ig.addColorStop(1, '#023e8a');
+            ctx.beginPath();
+            ctx.arc(center.x, center.y, innerRadius, 0, 2 * Math.PI);
+            ctx.fillStyle = ig;
+            ctx.fill();
+            
+            ctx.strokeStyle = 'rgba(144, 224, 239, 0.5)';
+            ctx.lineWidth = 5;
+            ctx.beginPath();
+            ctx.arc(center.x, center.y, innerRadius, 0, 2 * Math.PI);
+            ctx.stroke();
+        }
+        
+        function updateAndDrawParticles(deltaTime) { for (let i = particles.length - 1; i >= 0; i--) { const p = particles[i]; p.update(deltaTime); p.draw(); if (p.life <= 0) { particles.splice(i, 1); }}}
+        function logToBattle(message, className) { const p = document.createElement('p'); p.textContent = `> ${message}`; if (className) { p.className = className; } battleLog.appendChild(p); battleLog.scrollTop = battleLog.scrollHeight;}
+        function clearLog() { battleLog.innerHTML = ''; }
+
+        function updateDynamicUI() {
+            if (!player || !ai) return;
+            document.getElementById('player-hp-bar').style.width = `${Math.max(0, player.hp / player.baseStats.hp) * 100}%`;
+            document.getElementById('player-spin-bar').style.width = `${Math.max(0, player.spin / player.baseStats.stamina) * 100}%`;
+            document.getElementById('player-power-bar').style.width = `${player.power}%`;
+            
+            const isPlayerDisabled = !player.isActive || player.specialActive || !gameActive;
+            const playerAtkBtn = document.getElementById('player-attack-btn');
+            const playerRplBtn = document.getElementById('player-repel-btn');
+            const playerSpcBtn = document.getElementById('player-special-btn');
+            
+            playerAtkBtn.disabled = isPlayerDisabled || player.power < ATTACK_COST;
+            playerRplBtn.disabled = isPlayerDisabled || player.power < REPEL_COST;
+            playerSpcBtn.disabled = isPlayerDisabled || player.power < SPECIAL_COST;
+
+            playerAtkBtn.classList.toggle('ready', !playerAtkBtn.disabled);
+            playerRplBtn.classList.toggle('ready', !playerRplBtn.disabled);
+            playerSpcBtn.classList.toggle('ready', !playerSpcBtn.disabled);
+            playerSpcBtn.style.setProperty('--shadow-color', player.shadowColor);
+
+            document.getElementById('ai-hp-bar').style.width = `${Math.max(0, ai.hp / ai.baseStats.hp) * 100}%`;
+            document.getElementById('ai-spin-bar').style.width = `${Math.max(0, ai.spin / ai.baseStats.stamina) * 100}%`;
+            document.getElementById('ai-power-bar').style.width = `${ai.power}%`;
+        }
+
+        // --- EVENT LISTENERS ---
+        startBattleBtn.addEventListener('click', startNewRun);
+        restartBtn.addEventListener('click', () => {
+            gameOverScreen.style.display = 'none';
+            selectionScreen.style.display = 'flex';
+        });
+        document.getElementById('player-attack-btn').addEventListener('click', () => player.performDashAttack(ai));
+        document.getElementById('player-repel-btn').addEventListener('click', () => player.performEvasiveDash(ai));
+        document.getElementById('player-special-btn').addEventListener('click', () => player.activateSpecial(ai));
+        
+        // --- INICIALIZAÇÃO ---
+        populateSelectors();
+        
+        const canvasEl = document.getElementById('beystadium');
+        function resizeCanvas() {
+            const container = document.getElementById('gameContainer');
+            const size = container.clientWidth;
+            canvasEl.width = size;
+            canvasEl.height = size;
+            
+            stadiumRadius = (size / 2) - 20;
+            center.x = size / 2;
+            center.y = size / 2;
+            
+            drawStadium();
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+        
+        drawStadium();
+    });
+    </script>
+</body>
+</html>
