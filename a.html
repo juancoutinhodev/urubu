@@ -89,7 +89,7 @@
                             <div class="stat-bar-container rounded-full overflow-hidden"><div id="player-power-bar" class="stat-bar h-4 rounded-full"></div></div>
                         </div>
                     </div>
-                    <div class="action-buttons mt-3 grid grid-cols-3 gap-2">
+                    <div class="action-buttons mt-3 grid grid-cols-3 gap-2" id="player-action-buttons">
                         <button id="player-attack-btn" class="action-btn p-3 rounded-lg font-bold">Atacar</button>
                         <button id="player-repel-btn" class="action-btn p-3 rounded-lg font-bold">Repelir</button>
                         <button id="player-special-btn" class="action-btn p-3 rounded-lg font-bold">Poder</button>
@@ -119,12 +119,11 @@
             <div id="battleLog" class="mt-4 w-full max-w-5xl h-24 bg-gray-800 border border-gray-700 rounded-lg p-2 text-sm font-mono overflow-y-scroll"></div>
         </div>
 
-        <div id="upgradeScreen" class="screen hidden w-11/12 max-w-3xl">
-            <h2 class="text-2xl md:text-4xl font-bold">VITÓRIA!</h2>
-            <p class="text-base md:text-lg text-gray-400">Escolha uma melhoria.</p>
-            <div id="upgrade-options" class="flex flex-col md:flex-row gap-4 w-full"></div>
-        </div>
-
+       <div id="upgradeScreen" class="screen hidden flex flex-col items-center gap-4 w-11/12 max-w-3xl">
+    <h2 class="text-2xl md:text-4xl font-bold">VITÓRIA!</h2>
+    <p class="text-base md:text-lg text-gray-400">Escolha uma melhoria.</p>
+    <div id="upgrade-options" class="flex flex-col md:flex-row gap-4 w-full"></div>
+</div>
         <div id="gameOverScreen" class="screen hidden w-11/12 max-w-lg">
             <h2 class="text-3xl md:text-5xl font-bold text-red-500">FIM DE JOGO</h2>
             <p id="finalScore" class="text-xl md:text-2xl"></p>
@@ -141,53 +140,36 @@
     document.addEventListener('DOMContentLoaded', () => {
         // --- DATABASE DE BEYBLADES ---
         const BEYBLADE_DATA = [
-    { id: 'valtryek', name: 'Valtryek V2', type: 'Attack', color: '#0096c7', shadowColor: '#48cae4', stats: { attack: 22, defense: 4, stamina: 70000, hp: 1800 }, specialAbility: { name: "Lançamento Gênese Rush", duration: 20000, effect: (self) => { self.stats.attack *= 6; self.specialAttackCount = 5; self.specialAttackCooldown = 0; } } },
-    { id: 'spryzen', name: 'Spryzen S2', type: 'Balance', color: '#d00000', shadowColor: '#e5383b', stats: { attack: 14, defense: 14, stamina: 85000, hp: 2200 }, specialAbility: { name: "Contra-ataque Lendário", duration: 20000, effect: (self) => { self.stats.defense *= 6; self.stats.attack *= 3; } } },
-    { id: 'roktavor', name: 'Roktavor R2', type: 'Stamina', color: '#f77f00', shadowColor: '#fcbf49', stats: { attack: 8, defense: 10, stamina: 150000, hp: 2500 }, specialAbility: { name: "Zona de Resistência", duration: 20000, effect: (self) => { self.damageReduction = 0.5; logToBattle(`${self.name} reforça sua resistência!`, `log-${self.isPlayer ? 'player' : 'ai'}`); } } },
-    { id: 'doomscizor', name: 'Doomscizor D2', type: 'Attack', color: '#5e60ce', shadowColor: '#9394ff', stats: { attack: 24, defense: 3, stamina: 65000, hp: 1700 }, specialAbility: { name: "Caçada Dupla", duration: 20000, effect: (self) => { self.stats.attack *= 4; self.vx *= 1.5; self.vy *= 1.5; } } },
-    { id: 'kerbeus', name: 'Kerbeus K2', type: 'Defense', color: '#52b788', shadowColor: '#95d5b2', stats: { attack: 6, defense: 20, stamina: 110000, hp: 2900 }, specialAbility: { name: "Defesa em Corrente", duration: 20000, effect: (self) => { self.damageReduction = 0.7; logToBattle(`${self.name} cria uma barreira de correntes!`, `log-${self.isPlayer ? 'player' : 'ai'}`); } } },
-    { id: 'satomb', name: 'Kinetic Satomb', type: 'Defense', color: '#7209b7', shadowColor: '#b180d7', stats: { attack: 10, defense: 18, stamina: 100000, hp: 2800 }, specialAbility: { name: "Ciclo de Defesa", duration: 20000, effect: (self) => { self.damageReduction = 0.75; logToBattle(`${self.name} ativa seu ciclo defensivo!`, `log-${self.isPlayer ? 'player' : 'ai'}`); } } },
-    { id: 'pegasus', name: 'Galaxy Pegasus', type: 'Attack', color: '#6bb7d9', shadowColor: '#aee1f9', stats: { attack: 26, defense: 2, stamina: 68000, hp: 1700 }, specialAbility: { name: "Stardust Driver", duration: 20000, effect: (self, opponent) => { self.stats.attack *= 7; opponent.hp -= self.stats.attack * 10; self.vy += 25; } } },
-    { id: 'ldrago', name: 'L-Drago Destructor', type: 'Attack', color: '#8d04a8', shadowColor: '#c866de', stats: { attack: 20, defense: 5, stamina: 75000, hp: 1900 }, specialAbility: { name: "Roubo de Imperador Dragão", duration: 20000, effect: (self, opponent) => { self.stats.attack *= 2; opponent.spin -= 8000; self.spin += 5000; opponent.hp -= 300; self.hp += 300;} } },
-    { id: 'leone', name: 'Rock Leone', type: 'Defense', color: '#3c8a2e', shadowColor: '#72d160', stats: { attack: 5, defense: 24, stamina: 120000, hp: 3200 }, specialAbility: { name: "Muralha de Leão", duration: 20000, effect: (self) => { self.damageReduction = 0.5; self.vx = 0; self.vy = 0; logToBattle(`${self.name} se torna uma fortaleza imóvel!`, `log-${self.isPlayer ? 'player' : 'ai'}`);} } },
-    { id: 'fafnir', name: 'Fafnir F3', type: 'Stamina', color: '#ffd60a', shadowColor: '#ffea00', stats: { attack: 9, defense: 10, stamina: 160000, hp: 2300 }, specialAbility: { name: "Dreno Espiral", duration: 20000, effect: (self, opponent) => { opponent.spin -= 10000; self.spin += 5000;} } },
-    { id: 'ghostbey', name: 'GhostBey', type: 'Balance', color: '#9d4edd', shadowColor: '#c77dff', stats: { attack: 20, defense: 15, stamina: 135000, hp: 4500 }, specialAbility: { name: "Ataque Intangível", duration: 20000, effect: (self, opponent) => { self.damageReduction = 0.9; self.stats.attack *= 4; opponent.hp -= 800; } } }
-];
-const BOSS_DATA = [
-    { id: 'nemesis', name: 'Diablo Nemesis (BOSS)', type: 'Balance', color: '#141414', shadowColor: '#ff4d6d', stats: { attack: 30, defense: 30, stamina: 250000, hp: 5000 }, specialAbility: { name: "Julgamento Final", duration: 20000, effect: (self) => { self.stats.attack *= 4; self.stats.defense *= 4; } } }
-];
+            { id: 'valtryek', name: 'Valtryek V2', type: 'Attack', color: '#0096c7', shadowColor: '#48cae4', stats: { attack: 22, defense: 4, stamina: 70000, hp: 1800 }, specialAbility: { name: "Lançamento Gênese Rush", duration: 20000, effect: (self) => { self.stats.attack *= 6; self.specialAttackCount = 5; self.specialAttackCooldown = 0; } } },
+            { id: 'spryzen', name: 'Spryzen S2', type: 'Balance', color: '#d00000', shadowColor: '#e5383b', stats: { attack: 14, defense: 14, stamina: 85000, hp: 2200 }, specialAbility: { name: "Contra-ataque Lendário", duration: 20000, effect: (self) => { self.stats.defense *= 6; self.stats.attack *= 3; } } },
+            { id: 'roktavor', name: 'Roktavor R2', type: 'Stamina', color: '#f77f00', shadowColor: '#fcbf49', stats: { attack: 8, defense: 10, stamina: 150000, hp: 2500 }, specialAbility: { name: "Zona de Resistência", duration: 20000, effect: (self) => { self.damageReduction = 0.5; logToBattle(`${self.name} reforça sua resistência!`, `log-${self.isPlayer ? 'player' : 'ai'}`); } } },
+            { id: 'doomscizor', name: 'Doomscizor D2', type: 'Attack', color: '#5e60ce', shadowColor: '#9394ff', stats: { attack: 24, defense: 3, stamina: 65000, hp: 1700 }, specialAbility: { name: "Caçada Dupla", duration: 20000, effect: (self) => { self.stats.attack *= 4; self.vx *= 1.5; self.vy *= 1.5; } } },
+            { id: 'kerbeus', name: 'Kerbeus K2', type: 'Defense', color: '#52b788', shadowColor: '#95d5b2', stats: { attack: 6, defense: 20, stamina: 110000, hp: 2900 }, specialAbility: { name: "Defesa em Corrente", duration: 20000, effect: (self) => { self.damageReduction = 0.7; logToBattle(`${self.name} cria uma barreira de correntes!`, `log-${self.isPlayer ? 'player' : 'ai'}`); } } },
+            { id: 'satomb', name: 'Kinetic Satomb', type: 'Defense', color: '#7209b7', shadowColor: '#b180d7', stats: { attack: 10, defense: 18, stamina: 100000, hp: 2800 }, specialAbility: { name: "Ciclo de Defesa", duration: 20000, effect: (self) => { self.damageReduction = 0.75; logToBattle(`${self.name} ativa seu ciclo defensivo!`, `log-${self.isPlayer ? 'player' : 'ai'}`); } } },
+            { id: 'pegasus', name: 'Galaxy Pegasus', type: 'Attack', color: '#6bb7d9', shadowColor: '#aee1f9', stats: { attack: 26, defense: 2, stamina: 68000, hp: 1700 }, specialAbility: { name: "Stardust Driver", duration: 20000, effect: (self, opponent) => { self.stats.attack *= 7; opponent.hp -= self.stats.attack * 10; self.vy += 25; } } },
+            { id: 'ldrago', name: 'L-Drago Destructor', type: 'Attack', color: '#8d04a8', shadowColor: '#c866de', stats: { attack: 20, defense: 5, stamina: 75000, hp: 1900 }, specialAbility: { name: "Roubo de Imperador Dragão", duration: 20000, effect: (self, opponent) => { self.stats.attack *= 2; opponent.spin -= 8000; self.spin += 5000; opponent.hp -= 300; self.hp += 300;} } },
+            { id: 'leone', name: 'Rock Leone', type: 'Defense', color: '#3c8a2e', shadowColor: '#72d160', stats: { attack: 5, defense: 24, stamina: 120000, hp: 3200 }, specialAbility: { name: "Muralha de Leão", duration: 20000, effect: (self) => { self.damageReduction = 0.5; self.vx = 0; self.vy = 0; logToBattle(`${self.name} se torna uma fortaleza imóvel!`, `log-${self.isPlayer ? 'player' : 'ai'}`);} } },
+            { id: 'fafnir', name: 'Fafnir F3', type: 'Stamina', color: '#ffd60a', shadowColor: '#ffea00', stats: { attack: 9, defense: 10, stamina: 160000, hp: 2300 }, specialAbility: { name: "Dreno Espiral", duration: 20000, effect: (self, opponent) => { opponent.spin -= 10000; self.spin += 5000;} } },
+            { id: 'ghostbey', name: 'GhostBey', type: 'Balance', color: '#9d4edd', shadowColor: '#c77dff', stats: { attack: 20, defense: 15, stamina: 135000, hp: 4500 }, specialAbility: { name: "Ataque Intangível", duration: 20000, effect: (self, opponent) => { self.damageReduction = 0.9; self.stats.attack *= 4; opponent.hp -= 800; } } }
+        ];
+        const BOSS_DATA = [
+            { id: 'nemesis', name: 'Diablo Nemesis (BOSS)', type: 'Balance', color: '#141414', shadowColor: '#ff4d6d', stats: { attack: 30, defense: 30, stamina: 250000, hp: 5000 }, specialAbility: { name: "Julgamento Final", duration: 20000, effect: (self) => { self.stats.attack *= 4; self.stats.defense *= 4; } } }
+        ];
         const UPGRADES = [
-    // Upgrades básicos
-    { id: 'hp_1', text: "+20% HP Máx", apply: (bey) => { bey.baseStats.hp *= 1.20; } },
-    { id: 'stamina_1', text: "+15% Rotação Máx", apply: (bey) => { bey.baseStats.stamina *= 1.15; } },
-    { id: 'attack_1', text: "+15% Ataque", apply: (bey) => { bey.baseStats.attack *= 1.15; } },
-    { id: 'defense_1', text: "+15% Defesa", apply: (bey) => { bey.baseStats.defense *= 1.15; } },
-
-    // Upgrades de cura e recuperação
-    { id: 'heal_1', text: "Curar 40% HP", apply: (bey) => { bey.hp = Math.min(bey.baseStats.hp, bey.hp + bey.baseStats.hp * 0.40); } },
-    { id: 'spin_heal_1', text: "Recuperar 30% Rotação", apply: (bey) => { bey.spin = Math.min(bey.baseStats.stamina, bey.spin + bey.baseStats.stamina * 0.30); } },
-
-    // Upgrades de velocidade e movimento
-    { id: 'speed_1', text: "+10% Velocidade", apply: (bey) => { window.TIME_SCALE *= 1.10; } },
-    { id: 'burst_speed', text: "Aceleração instantânea (+30% por 5s)", apply: (bey) => { 
-        window.TIME_SCALE *= 1.30;
-        setTimeout(() => { window.TIME_SCALE /= 1.30; }, 5000); 
-    }},
-
-    // Upgrades de combate
-    { id: 'critical_chance', text: "+15% Chance de Acerto Crítico", apply: (bey) => { bey.criticalChance = (bey.criticalChance || 0) + 0.15; } },
-    { id: 'next_critical', text: "Próximo ataque é crítico", apply: (bey) => { bey.nextAttackIsCritical = true; } },
-    { id: 'damage_reflect', text: "10% de chance de refletir dano", apply: (bey) => { bey.damageReflect = 0.10; } },
-
-    // Upgrades defensivos
-    { id: 'damage_absorb', text: "15% de chance de anular dano recebido", apply: (bey) => { bey.damageAbsorbChance = 0.15; } },
-    { id: 'hp_regen', text: "Regeneração de 1% HP/s", apply: (bey) => { bey.hpRegenRate = (bey.hpRegenRate || 0) + 0.01; } },
-
-    // Upgrades de habilidade
-    { id: 'ability_cooldown', text: "-20% Recarga de Habilidade", apply: (bey) => { bey.specialAbility.cooldownReduction = (bey.specialAbility.cooldownReduction || 0) + 0.20; } },
-    { id: 'ability_duration', text: "+15% Duração da Habilidade", apply: (bey) => { bey.specialAbility.duration *= 1.15; } }
-];
-
+            { id: 'hp_1', text: "HP Máx. +40%", apply: (bey) => { bey.baseStats.hp *= 1.40; bey.hp *= 1.40; } },
+            { id: 'stamina_1', text: "Rotação Máx. +30%", apply: (bey) => { bey.baseStats.stamina *= 1.30; bey.spin *= 1.30; } },
+            { id: 'attack_1', text: "Ataque +30%", apply: (bey) => { bey.baseStats.attack *= 1.30; } },
+            { id: 'defense_1', text: "Defesa +30%", apply: (bey) => { bey.baseStats.defense *= 1.30; } },
+            { id: 'heal_1', text: "Curar 70% HP", apply: (bey) => { bey.hp = Math.min(bey.baseStats.hp, bey.hp + bey.baseStats.hp * 0.70); } },
+            { id: 'spin_heal_1', text: "Recuperar 50% Rotação", apply: (bey) => { bey.spin = Math.min(bey.baseStats.stamina, bey.spin + bey.baseStats.stamina * 0.50); } },
+            { id: 'speed_1', text: "+20% Velocidade Geral", apply: (bey) => { window.TIME_SCALE *= 1.20; } },
+            { id: 'power_gain', text: "+50% Ganho de Poder", apply: (bey) => { bey.powerGainMultiplier = (bey.powerGainMultiplier || 1) * 1.5; } },
+            { id: 'critical_chance', text: "+25% Chance de Acerto Crítico", apply: (bey) => { bey.criticalChance = (bey.criticalChance || 0) + 0.25; } },
+            { id: 'damage_reduction', text: "Redução de Dano -15%", apply: (bey) => { bey.damageReduction = (bey.damageReduction || 1.0) * 0.85; } },
+            { id: 'hp_regen', text: "Regeneração de 2% HP/s", apply: (bey) => { bey.hpRegenRate = (bey.hpRegenRate || 0) + 0.02; } },
+            { id: 'ability_cost', text: "-50% Custo de Habilidade", apply: (bey) => { bey.specialAbility.costReduction = (bey.specialAbility.costReduction || 1) * 0.5; } }
+        ];
+        
         // --- VARIÁVEIS GLOBAIS ---
         const canvas = document.getElementById('beystadium');
         const ctx = canvas.getContext('2d');
@@ -199,6 +181,7 @@ const BOSS_DATA = [
         const gameArea = document.getElementById('gameArea');
         const playerBeySelect = document.getElementById('playerBeySelect');
         const startBattleBtn = document.getElementById('startBattleBtn');
+        const playerActionButtons = document.getElementById('player-action-buttons');
 
         const battleLog = document.getElementById('battleLog');
         const upgradeScreen = document.getElementById('upgradeScreen');
@@ -228,6 +211,15 @@ const BOSS_DATA = [
                 
                 this.isPlayer = isPlayer;
                 this.radius = 15;
+                this.balanceMode = 'attack';
+                this.isBalance = this.type === 'Balance';
+                
+                // Variáveis de Upgrade
+                this.damageReduction = 1.0;
+                this.powerGainMultiplier = 1;
+                this.criticalChance = 0;
+                this.hpRegenRate = 0;
+                this.specialAbility.costReduction = 1;
 
                 if (!isPlayer) {
                     const scale = 1 + (stage - 1) * 0.1;
@@ -250,17 +242,38 @@ const BOSS_DATA = [
                 this.specialActive = false;
                 this.specialDuration = 0;
                 this.stats = JSON.parse(JSON.stringify(this.baseStats));
-                this.damageReduction = 1.0;
                 this.afterImages = [];
                 this.afterImageCooldown = 0;
                 this.specialAttackCount = 0;
                 this.specialAttackCooldown = 0;
+                this.balanceMode = 'attack';
+                this.applyBalanceMode();
+            }
+
+            applyBalanceMode() {
+                if (!this.isBalance) return;
+                // Aplica os multiplicadores do modo sobre os stats base, mantendo os upgrades
+                if (this.balanceMode === 'attack') {
+                    this.stats.attack = this.baseStats.attack * 4.0;
+                    this.stats.defense = this.baseStats.defense * 0.7;
+                    this.stats.stamina = this.baseStats.stamina * 0.8;
+                } else {
+                    this.stats.defense = this.baseStats.defense * 4.0;
+                    this.stats.stamina = this.baseStats.stamina * 2.0;
+                    this.stats.attack = this.baseStats.attack * 0.8;
+                }
+            }
+
+            toggleBalanceMode() {
+                if (!this.isBalance) return;
+                this.balanceMode = this.balanceMode === 'attack' ? 'defense' : 'attack';
+                this.applyBalanceMode();
+                logToBattle(`${this.name} mudou para o modo de ${this.balanceMode === 'attack' ? 'Ataque' : 'Defesa'}!`, `log-${this.isPlayer ? 'player' : 'ai'}`);
             }
 
             draw() {
                 if (!this.isActive) return;
 
-                // --- DESENHA O NICKNAME PRIMEIRO PARA FICAR NO FUNDO ---
                 const cleanName = this.name.replace(/\s*\(.*\)\s*/, '');
                 const nameParts = cleanName.split(' ');
                 const initials = nameParts.map(part => part[0]).join('');
@@ -268,18 +281,15 @@ const BOSS_DATA = [
                 ctx.font = 'bold 14px Orbitron';
                 ctx.fillStyle = 'white';
                 ctx.textAlign = 'center';
-                ctx.textBaseline = 'bottom'; // ALTERAÇÃO: Alinha pela base do texto
+                ctx.textBaseline = 'bottom';
                 ctx.shadowColor = 'black';
                 ctx.shadowBlur = 4;
                 
-                // ALTERAÇÃO: Desenha o texto ACIMA do Beyblade
                 ctx.fillText(initials, this.x, this.y - this.radius - 5);
                 
-                // Limpa a sombra para não afetar o Beyblade
                 ctx.shadowColor = 'transparent';
                 ctx.shadowBlur = 0;
                 
-                // --- DESENHA O BEYBLADE E EFEITOS ---
                 ctx.save();
                 ctx.globalCompositeOperation = 'lighter';
 
@@ -352,6 +362,10 @@ const BOSS_DATA = [
                 this.spin -= 0.02 * deltaTime;
                 this.vx *= 0.998;
                 this.vy *= 0.998;
+                
+                if (this.hpRegenRate > 0) {
+                    this.hp = Math.min(this.baseStats.hp, this.hp + this.baseStats.hp * this.hpRegenRate * deltaTime / 1000);
+                }
 
                 if (Math.random() > 0.02) {
                     particles.push(new Particle(this.x, this.y, this.shadowColor, 'movement'));
@@ -392,11 +406,12 @@ const BOSS_DATA = [
             }
             
             chargePower(amount) {
-                if(this.power < 100) { this.power = Math.min(100, this.power + amount); }
+                const multiplier = this.powerGainMultiplier || 1;
+                if(this.power < 100) { this.power = Math.min(100, this.power + amount * multiplier); }
             }
 
             performDashAttack(opponent) {
-                if (!this.isActive || this.specialActive || this.power < ATTACK_COST) return;
+                if (!this.isActive || this.power < ATTACK_COST) return;
                 this.power -= ATTACK_COST;
                 logToBattle(`${this.name} usa Dash de Ataque!`, `log-${this.isPlayer ? 'player' : 'ai'}`);
                 const angle = Math.atan2(opponent.y - this.y, opponent.x - this.x);
@@ -406,7 +421,7 @@ const BOSS_DATA = [
             }
 
             performEvasiveDash(opponent) {
-                if (!this.isActive || this.specialActive || this.power < REPEL_COST) return;
+                if (!this.isActive || this.power < REPEL_COST) return;
                 this.power -= REPEL_COST;
                 logToBattle(`${this.name} usa Dash de Fuga!`, `log-${this.isPlayer ? 'player' : 'ai'}`);
                 const angle = Math.atan2(opponent.y - this.y, opponent.x - this.x);
@@ -416,7 +431,8 @@ const BOSS_DATA = [
             }
             
             activateSpecial(opponent) {
-                if (!this.isActive || this.specialActive || this.power < SPECIAL_COST) return;
+                const specialCost = SPECIAL_COST * (this.specialAbility.costReduction || 1);
+                if (!this.isActive || this.specialActive || this.power < specialCost) return;
                 this.power = 0;
                 this.specialActive = true;
                 this.specialDuration = this.specialAbility.duration;
@@ -431,12 +447,14 @@ const BOSS_DATA = [
             }
 
             deactivateSpecial() {
+                if (!this.specialActive) return;
                 this.specialActive = false;
-                this.stats = { ...this.baseStats };
+                this.stats = JSON.parse(JSON.stringify(this.baseStats));
                 this.damageReduction = 1.0;
                 this.specialAttackCount = 0;
                 if (this.id === 'valtryek') this.afterImages = [];
                 logToBattle(`${this.name} voltou ao normal.`, 'log-narrator');
+                if (this.isBalance) this.applyBalanceMode();
             }
         }
         
@@ -501,9 +519,12 @@ const BOSS_DATA = [
             ai = new Beyblade(aiData, false, currentStage);
             beys = [player, ai];
 
+            // Apenas reinicia HP, rotação e poder do jogador, não os upgrades
             player.hp = player.baseStats.hp;
             player.spin = player.baseStats.stamina;
             player.power = 0;
+            player.specialActive = false; // Garante que a transformação termine
+            player.applyBalanceMode(); // Garante que o modo de batalha inicial seja aplicado
 
             setupUI();
             
@@ -532,6 +553,23 @@ const BOSS_DATA = [
             document.getElementById('player-spin-bar').style.backgroundColor = player.color;
             document.getElementById('player-power-bar').style.background = `linear-gradient(90deg, ${player.shadowColor}, ${player.color})`;
             
+            let toggleBtn = document.getElementById('player-toggle-mode-btn');
+            if (player.isBalance) {
+                if (!toggleBtn) {
+                    toggleBtn = document.createElement('button');
+                    toggleBtn.id = 'player-toggle-mode-btn';
+                    toggleBtn.className = 'action-btn p-3 rounded-lg font-bold col-span-3 mt-2';
+                    toggleBtn.onclick = () => {
+                        player.toggleBalanceMode();
+                        toggleBtn.textContent = `Mudar para Modo de ${player.balanceMode === 'attack' ? 'Defesa' : 'Ataque'}`;
+                    };
+                    playerActionButtons.appendChild(toggleBtn);
+                }
+                toggleBtn.textContent = `Mudar para Modo de ${player.balanceMode === 'attack' ? 'Defesa' : 'Ataque'}`;
+            } else if (toggleBtn) {
+                toggleBtn.remove();
+            }
+
             document.getElementById('ai-name').textContent = ai.name;
             document.getElementById('ai-panel').style.borderColor = ai.shadowColor;
             document.getElementById('ai-panel').style.boxShadow = `0 0 15px ${ai.shadowColor}`;
@@ -543,9 +581,18 @@ const BOSS_DATA = [
             if (!currentAI.isActive || !opponent.isActive || !gameActive) return;
             aiDecisionTimer -= deltaTime;
             if (aiDecisionTimer <= 0) {
-                 const dist = Math.hypot(currentAI.x - opponent.x, currentAI.y - opponent.y);
-                if (currentAI.power >= SPECIAL_COST && (currentAI.spin < currentAI.baseStats.stamina * 0.5 || currentAI.hp < currentAI.baseStats.hp * 0.5)) {
-                     currentAI.activateSpecial(opponent);
+                const dist = Math.hypot(currentAI.x - opponent.x, currentAI.y - opponent.y);
+                
+                if (currentAI.isBalance) {
+                    if (currentAI.hp < currentAI.baseStats.hp * 0.4 && currentAI.balanceMode === 'attack') {
+                        currentAI.toggleBalanceMode();
+                    } else if (currentAI.hp > currentAI.baseStats.hp * 0.8 && currentAI.balanceMode === 'defense') {
+                        currentAI.toggleBalanceMode();
+                    }
+                }
+
+                if (currentAI.power >= SPECIAL_COST * (currentAI.specialAbility.costReduction || 1) && (currentAI.spin < currentAI.baseStats.stamina * 0.5 || currentAI.hp < currentAI.baseStats.hp * 0.5)) {
+                    currentAI.activateSpecial(opponent);
                 } else if (currentAI.power >= ATTACK_COST && dist < 250 && Math.random() < 0.7) {
                     currentAI.performDashAttack(opponent);
                 } else if (currentAI.power >= REPEL_COST && dist < 100 && Math.random() < 0.5) {
@@ -598,16 +645,47 @@ const BOSS_DATA = [
 
                 const playerTypeAdv = getTypeAdvantage(player.type, ai.type);
                 const aiTypeAdv = getTypeAdvantage(ai.type, player.type);
+                
+                // Nova fórmula de dano: (Ataque - Defesa/2) * multiplicadores
+                let playerHpDamage = Math.max(1, ai.stats.attack - (player.stats.defense / 2)) * 10 * aiTypeAdv;
+                let aiHpDamage = Math.max(1, player.stats.attack - (ai.stats.defense / 2)) * 10 * playerTypeAdv;
 
-                const baseSpinDamage = 45;
-                const baseHpDamage = player.type === 'Attack' ? 25 : 10;
-                const baseAiHpDamage = ai.type === 'Attack' ? 25 : 10;
+                // Aplica multiplicador de tipo de dano para HP
+                if (player.type === 'Attack') aiHpDamage *= 2.5;
+                if (ai.type === 'Attack') playerHpDamage *= 2.5;
+                
+                // Aplica redução de dano de upgrades/habilidades
+                playerHpDamage *= (player.damageReduction || 1.0);
+                aiHpDamage *= (ai.damageReduction || 1.0);
 
-                const playerSpinDamage = Math.max(1, ai.stats.attack - player.stats.defense) * baseSpinDamage * aiTypeAdv;
-                const aiSpinDamage = Math.max(1, player.stats.attack - ai.stats.defense) * baseSpinDamage * playerTypeAdv;
+                // Aplica chance de crítico
+                if (Math.random() < (player.criticalChance || 0)) {
+                    aiHpDamage *= 2;
+                    logToBattle(`${player.name} acerta um golpe CRÍTICO!`, 'log-player');
+                }
+                if (Math.random() < (ai.criticalChance || 0)) {
+                    playerHpDamage *= 2;
+                    logToBattle(`${ai.name} acerta um golpe CRÍTICO!`, 'log-ai');
+                }
+                
+                // Efeito de cambaleio para beys de ataque
+                if (player.type === 'Attack' && aiHpDamage > 0) {
+                    ai.spin -= 1500;
+                    const impulseAngle = Math.atan2(ai.y - player.y, ai.x - player.x);
+                    ai.vx += Math.cos(impulseAngle) * 5;
+                    ai.vy += Math.sin(impulseAngle) * 5;
+                    logToBattle(`${player.name} cambaleia ${ai.name}!`, 'log-player');
+                }
+                if (ai.type === 'Attack' && playerHpDamage > 0) {
+                    player.spin -= 1500;
+                    const impulseAngle = Math.atan2(player.y - ai.y, player.x - ai.x);
+                    player.vx += Math.cos(impulseAngle) * 5;
+                    player.vy += Math.sin(impulseAngle) * 5;
+                    logToBattle(`${ai.name} cambaleia ${player.name}!`, 'log-ai');
+                }
 
-                const playerHpDamage = Math.max(1, ai.stats.attack - player.stats.defense) * baseAiHpDamage * aiTypeAdv * (1 / player.damageReduction);
-                const aiHpDamage = Math.max(1, player.stats.attack - ai.stats.defense) * baseHpDamage * playerTypeAdv * (1 / ai.damageReduction);
+                const playerSpinDamage = Math.max(1, ai.stats.attack - (player.stats.defense / 2)) * 30 * aiTypeAdv;
+                const aiSpinDamage = Math.max(1, player.stats.attack - (ai.stats.defense / 2)) * 30 * playerTypeAdv;
 
                 player.spin -= playerSpinDamage; 
                 ai.spin -= aiSpinDamage;
@@ -667,6 +745,8 @@ const BOSS_DATA = [
 
             if (playerLost || aiLost) {
                 gameActive = false;
+                player.deactivateSpecial();
+                ai.deactivateSpecial();
                 if (playerLost && aiLost) {
                     handleEndGame("Empate! Ambos os Beys pararam!", false);
                 } else if (playerLost) {
@@ -758,19 +838,22 @@ const BOSS_DATA = [
             document.getElementById('player-spin-bar').style.width = `${Math.max(0, player.spin / player.baseStats.stamina) * 100}%`;
             document.getElementById('player-power-bar').style.width = `${player.power}%`;
             
-            const isPlayerDisabled = !player.isActive || player.specialActive || !gameActive;
+            const isPlayerDisabled = !player.isActive || !gameActive;
             const playerAtkBtn = document.getElementById('player-attack-btn');
             const playerRplBtn = document.getElementById('player-repel-btn');
             const playerSpcBtn = document.getElementById('player-special-btn');
-            
+            const playerToggleBtn = document.getElementById('player-toggle-mode-btn');
+
             playerAtkBtn.disabled = isPlayerDisabled || player.power < ATTACK_COST;
             playerRplBtn.disabled = isPlayerDisabled || player.power < REPEL_COST;
-            playerSpcBtn.disabled = isPlayerDisabled || player.power < SPECIAL_COST;
+            playerSpcBtn.disabled = isPlayerDisabled || player.power < SPECIAL_COST * (player.specialAbility.costReduction || 1);
+            if (playerToggleBtn) { playerToggleBtn.disabled = isPlayerDisabled; }
 
             playerAtkBtn.classList.toggle('ready', !playerAtkBtn.disabled);
             playerRplBtn.classList.toggle('ready', !playerRplBtn.disabled);
             playerSpcBtn.classList.toggle('ready', !playerSpcBtn.disabled);
             playerSpcBtn.style.setProperty('--shadow-color', player.shadowColor);
+            if (playerToggleBtn) { playerToggleBtn.style.setProperty('--shadow-color', player.shadowColor); }
 
             document.getElementById('ai-hp-bar').style.width = `${Math.max(0, ai.hp / ai.baseStats.hp) * 100}%`;
             document.getElementById('ai-spin-bar').style.width = `${Math.max(0, ai.spin / ai.baseStats.stamina) * 100}%`;
