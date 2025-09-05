@@ -158,20 +158,45 @@
     document.addEventListener('DOMContentLoaded', () => {
         // --- DATABASE DE BEYBLADES ---
         const BEYBLADE_DATA = [
+            // Metal Saga
+            { id: 'pegasus', name: 'Galaxy Pegasus', type: 'Attack', color: '#6bb7d9', shadowColor: '#aee1f9', stats: { attack: 26, defense: 2, stamina: 68000, hp: 1700 }, specialAbility: { name: "Stardust Driver", duration: 15000, effect: (self, opponent) => { self.stats.attack *= 7; if(opponent) opponent.hp -= self.stats.attack * 10; self.vy += 25; } } },
+            { id: 'ldrago', name: 'L-Drago Destructor', type: 'Attack', color: '#8d04a8', shadowColor: '#c866de', stats: { attack: 20, defense: 5, stamina: 75000, hp: 1900 }, specialAbility: { name: "Roubo de Imperador Dragão", duration: 20000, effect: (self, opponent) => { self.stats.attack *= 2; if(opponent) {opponent.spin -= 8000; opponent.hp -= 300;} self.spin += 5000; self.hp += 300;} } },
+            { id: 'leone', name: 'Rock Leone', type: 'Defense', color: '#3c8a2e', shadowColor: '#72d160', stats: { attack: 5, defense: 24, stamina: 120000, hp: 3200 }, specialAbility: { name: "Muralha de Leão", duration: 20000, effect: (self) => { self.damageReduction = 0.5; self.vx = 0; self.vy = 0; logToBattle(`${self.name} se torna uma fortaleza imóvel!`, `log-${self.isPlayer ? 'player' : 'ai'}`);} } },
+            
+            // Burst Saga (Originais)
             { id: 'valtryek', name: 'Valtryek V2', type: 'Attack', color: '#0096c7', shadowColor: '#48cae4', stats: { attack: 22, defense: 4, stamina: 70000, hp: 1800 }, specialAbility: { name: "Lançamento Gênese Rush", duration: 20000, effect: (self) => { self.stats.attack *= 6; self.specialAttackCount = 5; self.specialAttackCooldown = 0; } } },
             { id: 'spryzen', name: 'Spryzen S2', type: 'Balance', color: '#d00000', shadowColor: '#e5383b', stats: { attack: 14, defense: 14, stamina: 85000, hp: 2200 }, specialAbility: { name: "Contra-ataque Lendário", duration: 20000, effect: (self) => { self.stats.defense *= 6; self.stats.attack *= 3; } } },
             { id: 'roktavor', name: 'Roktavor R2', type: 'Stamina', color: '#f77f00', shadowColor: '#fcbf49', stats: { attack: 8, defense: 10, stamina: 150000, hp: 2500 }, specialAbility: { name: "Zona de Resistência", duration: 20000, effect: (self) => { self.damageReduction = 0.5; logToBattle(`${self.name} reforça sua resistência!`, `log-${self.isPlayer ? 'player' : 'ai'}`); } } },
             { id: 'doomscizor', name: 'Doomscizor D2', type: 'Attack', color: '#5e60ce', shadowColor: '#9394ff', stats: { attack: 24, defense: 3, stamina: 65000, hp: 1700 }, specialAbility: { name: "Caçada Dupla", duration: 20000, effect: (self) => { self.stats.attack *= 4; self.vx *= 1.5; self.vy *= 1.5; } } },
             { id: 'kerbeus', name: 'Kerbeus K2', type: 'Defense', color: '#52b788', shadowColor: '#95d5b2', stats: { attack: 6, defense: 20, stamina: 110000, hp: 2900 }, specialAbility: { name: "Defesa em Corrente", duration: 20000, effect: (self) => { self.damageReduction = 0.7; logToBattle(`${self.name} cria uma barreira de correntes!`, `log-${self.isPlayer ? 'player' : 'ai'}`); } } },
             { id: 'satomb', name: 'Kinetic Satomb', type: 'Defense', color: '#7209b7', shadowColor: '#b180d7', stats: { attack: 10, defense: 18, stamina: 100000, hp: 2800 }, specialAbility: { name: "Ciclo de Defesa", duration: 20000, effect: (self) => { self.damageReduction = 0.75; logToBattle(`${self.name} ativa seu ciclo defensivo!`, `log-${self.isPlayer ? 'player' : 'ai'}`); } } },
-            { id: 'pegasus', name: 'Galaxy Pegasus', type: 'Attack', color: '#6bb7d9', shadowColor: '#aee1f9', stats: { attack: 26, defense: 2, stamina: 68000, hp: 1700 }, specialAbility: { name: "Stardust Driver", duration: 20000, effect: (self, opponent) => { self.stats.attack *= 7; if(opponent) opponent.hp -= self.stats.attack * 10; self.vy += 25; } } },
-            { id: 'ldrago', name: 'L-Drago Destructor', type: 'Attack', color: '#8d04a8', shadowColor: '#c866de', stats: { attack: 20, defense: 5, stamina: 75000, hp: 1900 }, specialAbility: { name: "Roubo de Imperador Dragão", duration: 20000, effect: (self, opponent) => { self.stats.attack *= 2; if(opponent) {opponent.spin -= 8000; opponent.hp -= 300;} self.spin += 5000; self.hp += 300;} } },
-            { id: 'leone', name: 'Rock Leone', type: 'Defense', color: '#3c8a2e', shadowColor: '#72d160', stats: { attack: 5, defense: 24, stamina: 120000, hp: 3200 }, specialAbility: { name: "Muralha de Leão", duration: 20000, effect: (self) => { self.damageReduction = 0.5; self.vx = 0; self.vy = 0; logToBattle(`${self.name} se torna uma fortaleza imóvel!`, `log-${self.isPlayer ? 'player' : 'ai'}`);} } },
             { id: 'fafnir', name: 'Fafnir F3', type: 'Stamina', color: '#ffd60a', shadowColor: '#ffea00', stats: { attack: 9, defense: 10, stamina: 160000, hp: 2300 }, specialAbility: { name: "Dreno Espiral", duration: 20000, effect: (self, opponent) => { if(opponent) opponent.spin -= 10000; self.spin += 5000;} } },
+
+            // **NOVOS** Beys da saga Burst
+            { id: 'longinus', name: 'Zwei Longinus', type: 'Attack', color: '#8e94f2', shadowColor: '#a9affb', stats: { attack: 25, defense: 6, stamina: 72000, hp: 1850 }, specialAbility: { name: "Martelo Zwei", duration: 10000, effect: (self, opponent) => { self.stats.attack *= 5; if(opponent) opponent.spin -= 15000; } } },
+            { id: 'phoenix', name: 'Perfect Phoenix', type: 'Defense', color: '#ff6d00', shadowColor: '#ff9e40', stats: { attack: 10, defense: 22, stamina: 100000, hp: 3000 }, specialAbility: { name: "Prensa Perfeita", duration: 15000, effect: (self) => { self.damageReduction = 0.2; self.stats.defense *= 3; logToBattle(`${self.name} libera sua armadura para defesa máxima!`, `log-player`); } } },
+            { id: 'diabolos', name: 'Master Diabolos', type: 'Balance', color: '#006d77', shadowColor: '#83c5be', stats: { attack: 15, defense: 15, stamina: 90000, hp: 2300 }, specialAbility: { name: "Master Break", duration: 15000, effect: (self) => { self.toggleBalanceMode(); self.stats.attack *= 2.5; self.stats.defense *= 2.5; } } },
+            { id: 'apocalypse', name: 'Prime Apocalypse', type: 'Attack', color: '#343a40', shadowColor: '#adb5bd', stats: { attack: 28, defense: 4, stamina: 65000, hp: 1750 }, specialAbility: { name: "Apocalypse Reboot", duration: 20000, effect: (self) => { self.stats.attack *= 3; self.vx *= 2; self.vy *= 2; self.damageReduction = 0.7; } } },
+            { id: 'genesis', name: 'Regalia Genesis', type: 'Stamina', color: '#e9d8a6', shadowColor: '#ee9b00', stats: { attack: 7, defense: 12, stamina: 170000, hp: 2600 }, specialAbility: { name: "Genesis Reboot", duration: 10000, effect: (self) => { self.spin = self.baseStats.stamina; self.damageReduction = 0.4; logToBattle(`${self.name} reinicia sua rotação!`, `log-player`); } } },
+            { id: 'dragon', name: 'Command Dragon', type: 'Attack', color: '#c9184a', shadowColor: '#ff4d6d', stats: { attack: 23, defense: 5, stamina: 75000, hp: 1900 }, specialAbility: { name: "Impulso Triplo", duration: 20000, effect: (self) => { self.stats.attack *= 2; self.specialAttackCount = 3; self.specialAttackCooldown = 0; } } },
+
+            // Bey Original
             { id: 'ghostbey', name: 'GhostBey', type: 'Balance', color: '#9d4edd', shadowColor: '#c77dff', stats: { attack: 20, defense: 15, stamina: 135000, hp: 4500 }, specialAbility: { name: "Ataque Intangível", duration: 20000, effect: (self, opponent) => { self.damageReduction = 0.1; self.stats.attack *= 4; if(opponent) opponent.hp -= 800; } } }
         ];
+
+        // **NOVO** 10 novos chefes adicionados
         const BOSS_DATA = [
-            { id: 'nemesis', name: 'Diablo Nemesis (BOSS)', type: 'Balance', color: '#141414', shadowColor: '#ff4d6d', stats: { attack: 30, defense: 30, stamina: 250000, hp: 5000 }, specialAbility: { name: "Julgamento Final", duration: 20000, effect: (self) => { self.stats.attack *= 4; self.stats.defense *= 4; } } }
+            { id: 'nemesis', name: 'Diablo Nemesis (BOSS)', type: 'Balance', color: '#141414', shadowColor: '#ff4d6d', stats: { attack: 30, defense: 30, stamina: 250000, hp: 5000 }, specialAbility: { name: "Julgamento Final", duration: 20000, effect: (self) => { self.stats.attack *= 4; self.stats.defense *= 4; } } },
+            { id: 'yggdrasil', name: 'World Tree Yggdrasil (BOSS)', type: 'Stamina', color: '#a3b18a', shadowColor: '#dad7cd', stats: { attack: 15, defense: 40, stamina: 400000, hp: 7000 }, specialAbility: { name: "Raízes do Mundo", duration: 30000, effect: (self) => { self.hpRegenRate = 0.1; self.damageReduction = 0.3; logToBattle(`Yggdrasil se enraíza na arena!`, 'log-ai'); } } },
+            { id: 'chimera', name: 'Quasar Chimera (BOSS)', type: 'Balance', color: '#ffb703', shadowColor: '#fb8500', stats: { attack: 35, defense: 35, stamina: 280000, hp: 5500 }, specialAbility: { name: "Fusão Quasar", duration: 20000, effect: (self) => { self.stats.attack *= 5; self.stats.defense *= 0.5; setTimeout(() => { self.stats.attack = self.baseStats.attack * 0.5; self.stats.defense = self.baseStats.defense * 5; }, 10000); } } },
+            { id: 'chronos', name: 'Chronos Pendulum (BOSS)', type: 'Stamina', color: '#495057', shadowColor: '#ced4da', stats: { attack: 20, defense: 30, stamina: 350000, hp: 6000 }, specialAbility: { name: "Paradoxo Temporal", duration: 15000, effect: (self, opponent) => { if(opponent) { opponent.vx *= 0.1; opponent.vy *= 0.1; opponent.spin -= 50000; } logToBattle(`O tempo se distorce ao redor de ${opponent.name}!`, 'log-ai'); } } },
+            { id: 'hades', name: 'Oblivion Hades (BOSS)', type: 'Attack', color: '#432818', shadowColor: '#99582a', stats: { attack: 50, defense: 15, stamina: 200000, hp: 4800 }, specialAbility: { name: "Ceifador do Submundo", duration: 15000, effect: (self) => { self.stats.attack *= 4; self.specialAttackCount = 4; self.specialAttackCooldown = 15; } } },
+            { id: 'ragnarok', name: 'Ragnarok Titan (BOSS)', type: 'Stamina', color: '#d90429', shadowColor: '#ef233c', stats: { attack: 25, defense: 25, stamina: 300000, hp: 8000 }, specialAbility: { name: "Resistência Final", duration: 20000, effect: (self) => { if (self.hp < self.baseStats.hp * 0.4) { self.stats.attack *= 8; self.stats.defense *= 5; logToBattle(`Ragnarok desperta sua fúria!`, 'log-ai'); } else { self.stats.stamina *= 2; } } } },
+            { id: 'hyperion', name: 'Solar Flare Hyperion (BOSS)', type: 'Attack', color: '#ffca3a', shadowColor: '#ff924c', stats: { attack: 45, defense: 20, stamina: 220000, hp: 5200 }, specialAbility: { name: "Supernova", duration: 15000, effect: (self, opponent) => { self.stats.attack *= 3; if (opponent) { const dist = Math.hypot(self.x - opponent.x, self.y - opponent.y); if (dist < 150) opponent.hp -= 2000;} } } },
+            { id: 'leviathan', name: 'Abyss Leviathan (BOSS)', type: 'Defense', color: '#1a535c', shadowColor: '#4ecdc4', stats: { attack: 28, defense: 45, stamina: 280000, hp: 6500 }, specialAbility: { name: "Prisão Maelstrom", duration: 10000, effect: (self, opponent) => { if (opponent) { opponent.vx = (self.x - opponent.x) / 10; opponent.vy = (self.y - opponent.y) / 10; opponent.hp -= 500; } } } },
+            { id: 'requiem', name: 'Genesis Requiem (BOSS)', type: 'Balance', color: '#f2e9e4', shadowColor: '#ffffff', stats: { attack: 40, defense: 40, stamina: 300000, hp: 6000 }, specialAbility: { name: "Mimetismo Gênesis", duration: 20000, effect: (self, opponent) => { if (opponent) { self.type = opponent.type; self.stats.attack *= 2; self.stats.defense *= 2; logToBattle(`Requiem copia o tipo de ${opponent.name}!`, 'log-ai'); } } } },
+            { id: 'valkyrie', name: 'Celestial Valkyrie (BOSS)', type: 'Attack', color: '#0077b6', shadowColor: '#caf0f8', stats: { attack: 55, defense: 10, stamina: 200000, hp: 5000 }, specialAbility: { name: "Lâmina Celestial", duration: 20000, effect: (self) => { self.stats.attack *= 5; self.specialAttackCount = 8; self.specialAttackCooldown = 0; } } },
+            { id: 'lucifer', name: 'The End Lucifer (BOSS)', type: 'Defense', color: '#5a189a', shadowColor: '#9d4edd', stats: { attack: 20, defense: 60, stamina: 250000, hp: 7500 }, specialAbility: { name: "Barreira Final", duration: 15000, effect: (self, opponent) => { self.damageReduction = 0.05; if(opponent) { opponent.hp -= 100; opponent.spin -= 1000;} logToBattle(`A barreira de Lucifer reflete o dano!`, 'log-ai'); } } }
         ];
         
         const UPGRADES = [
@@ -214,7 +239,7 @@
         let particles = [];
         let aiDecisionTimer = 0;
         let currentStage = 0;
-        let bossDefeats = 0; // **NOVO** Rastreia o número de chefes derrotados
+        let bossDefeats = 0; 
         window.TIME_SCALE = 2.8;
 
         // --- CLASSES ---
@@ -519,7 +544,7 @@
             const playerData = BEYBLADE_DATA.find(b => b.id === playerBeySelect.value);
             player = new Beyblade(playerData, true);
             currentStage = 1;
-            bossDefeats = 0; // Reseta o contador de chefes
+            bossDefeats = 0; 
             window.TIME_SCALE = 2.8;
             
             selectionScreen.style.display = 'none';
@@ -535,7 +560,11 @@
             const numOpponents = 1 + bossDefeats;
             beys = [player]; 
 
-            const opponentPool = BEYBLADE_DATA.filter(b => b.id !== player.id);
+            let opponentPool = BEYBLADE_DATA.filter(b => b.id !== player.id);
+            // **NOVO** Se o jogador não for o GhostBey, remove o GhostBey da lista de oponentes
+            if (player.id !== 'ghostbey') {
+                opponentPool = opponentPool.filter(b => b.id !== 'ghostbey');
+            }
 
             for (let i = 0; i < numOpponents; i++) {
                 let aiData;
@@ -619,7 +648,6 @@
             }
         }
         
-        // **NOVA** Função para encontrar o oponente mais próximo do jogador
         function getClosestOpponent() {
             const activeOpponents = beys.filter(b => !b.isPlayer && b.isActive);
             if (activeOpponents.length === 0) return null;
@@ -680,7 +708,6 @@
             return 1.0;
         }
         
-        // **ATUALIZADO** Lógica de colisão para lidar com múltiplos Beys
         function handleCollisions() {
             if (!gameActive) return;
             
@@ -756,14 +783,14 @@
         
         function createCollisionSparks(x, y) {
             const sparkCount = 40 + Math.random() * 20;
+            const mainOpponent = beys.find(b => !b.isPlayer);
             for (let i = 0; i < sparkCount; i++) { 
-                const color = Math.random() > 0.5 ? player.shadowColor : beys[1].shadowColor;
+                const color = Math.random() > 0.5 ? player.shadowColor : (mainOpponent ? mainOpponent.shadowColor : '#ffffff');
                 const options = { life: Math.random() * 50 + 30, size: Math.random() * 4 + 2, speed: Math.random() * 7 + 3 };
                 particles.push(new Particle(x, y, color, 'collision', options)); 
             }
         }
 
-        // **ATUALIZADO** Condições de vitória para múltiplos oponentes
         function checkWinConditions() {
             if (!gameActive) return;
             
@@ -792,7 +819,7 @@
                 currentStage++;
                 setTimeout(showUpgradeScreen, 2000);
             } else {
-                bossDefeats = 0; // Reseta o progresso de múltiplos inimigos na derrota
+                bossDefeats = 0; 
                 setTimeout(showGameOverScreen, 2000);
             }
         }
