@@ -733,10 +733,29 @@
             requestAnimationFrame(gameLoop);
         }
 
+        /**
+         * NOVA FUNÇÃO: Calcula a vantagem de tipo.
+         * Retorna um multiplicador de dano.
+         * > 1.0 para vantagem, < 1.0 para desvantagem, 1.0 para neutro.
+         */
         function getTypeAdvantage(attackerType, defenderType) {
-            const advantages = { 'Attack': 'Stamina', 'Stamina': 'Defense', 'Defense': 'Attack' };
-            if (advantages[attackerType] === defenderType) return 1.25;
-            if (advantages[defenderType] === attackerType) return 0.75;
+            const advantages = {
+                'Attack': 'Stamina',
+                'Stamina': 'Defense',
+                'Defense': 'Attack'
+            };
+            
+            // Se o atacante tem vantagem sobre o defensor
+            if (advantages[attackerType] === defenderType) {
+                return 1.25; // 25% de bônus de dano
+            }
+            
+            // Se o defensor tem vantagem sobre o atacante
+            if (advantages[defenderType] === attackerType) {
+                return 0.75; // 25% de penalidade de dano
+            }
+            
+            // Se for um tipo contra ele mesmo, ou qualquer luta com tipo Equilíbrio
             return 1.0;
         }
         
@@ -774,12 +793,18 @@
                         if(!b1.isSlashing) { b1.vx -= (p + knockback) * normalX; b1.vy -= (p + knockback) * normalY; }
                         if(!b2.isSlashing) { b2.vx += (p + knockback) * normalX; b2.vy += (p + knockback) * normalY; }
                         
-
+                        // --- IMPLEMENTAÇÃO DO SISTEMA DE VANTAGEM ---
                         const b1TypeAdv = getTypeAdvantage(b1.type, b2.type);
                         const b2TypeAdv = getTypeAdvantage(b2.type, b1.type);
                         
-                        let b1HpDamage = Math.max(1, b2.stats.attack - (b1.stats.defense / 2)) * 10 * b2TypeAdv;
-                        let b2HpDamage = Math.max(1, b1.stats.attack - (b2.stats.defense / 2)) * 10 * b1TypeAdv;
+                        // Cálculo de dano base
+                        let b1HpDamage = Math.max(1, b2.stats.attack - (b1.stats.defense / 2)) * 10;
+                        let b2HpDamage = Math.max(1, b1.stats.attack - (b2.stats.defense / 2)) * 10;
+
+                        // Aplica o multiplicador de vantagem/desvantagem
+                        b1HpDamage *= b2TypeAdv;
+                        b2HpDamage *= b1TypeAdv;
+                        // ---------------------------------------------
 
                         if (b1.type === 'Attack') b2HpDamage *= 2.5;
                         if (b2.type === 'Attack') b1HpDamage *= 2.5;
@@ -1008,4 +1033,4 @@
     });
     </script>
 </body>
-</html> 
+</html>
