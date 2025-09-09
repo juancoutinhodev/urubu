@@ -891,12 +891,13 @@
                 },
                 isMinion: true
             };
-            const omnidroid = new Beyblade(omnidroidData, false);
+            const omnidroid = new Beyblade(omnidroidData, syndrome.isPlayer);
             omnidroid.radius = 25; // Torná-lo gigante
             omnidroid.originalRadius = 25;
             omnidroid.x = syndrome.x + (Math.random() * 40 - 20);
             omnidroid.y = syndrome.y + (Math.random() * 40 - 20);
             beys.push(omnidroid);
+            logToBattle(`${syndrome.name} usa sua telecinese para se proteger do Omnidroide!`, `log-narrator`);
 
             setTimeout(() => {
                 if(omnidroid.isActive) {
@@ -980,7 +981,8 @@
         }
         
         function getClosestOpponent(fromBey) {
-            const opponents = beys.filter(b => (b.isPlayer !== fromBey.isPlayer || (fromBey.isMinion && !b.isMinion) || (!fromBey.isMinion && b.isMinion)) && b.isActive);
+            // Lógica simplificada para garantir que minions ataquem apenas a equipe adversária.
+            const opponents = beys.filter(b => b.isPlayer !== fromBey.isPlayer && b.isActive);
             if (opponents.length === 0) return null;
 
             return opponents.reduce((closest, opp) => {
