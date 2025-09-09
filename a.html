@@ -69,14 +69,12 @@
         .log-ai { color: #e5383b; }
         .log-narrator { color: #fcbf49; }
         
-        /* CORRIGIDO: Estilos para a contagem regressiva */
         #launch-sequence {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            /* As 3 linhas abaixo garantem a centralização perfeita */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -193,7 +191,6 @@
 
     document.addEventListener('DOMContentLoaded', () => {
         // --- DATABASE DE BEYBLADES ---
-        // **MODIFICADO**: HP e Stamina dobrados para batalhas mais longas.
         const BEYBLADE_DATA = [
             // Metal Saga
             { id: 'pegasus', name: 'Galaxy Pegasus', type: 'Attack', color: '#6bb7d9', shadowColor: '#aee1f9', stats: { attack: 26, defense: 2, stamina: 136000, hp: 3400 }, specialAbility: { name: "Stardust Driver", duration: 1000, effect: (self, opponent) => { self.stats.attack *= 10; if(opponent) { const angle = Math.atan2(opponent.y - self.y, opponent.x - self.x); self.vx = Math.cos(angle) * 50; self.vy = Math.sin(angle) * 50;} } } },
@@ -456,7 +453,6 @@
                 if (this.tetheredTarget) { const dist = Math.hypot(this.x - this.tetheredTarget.x, this.y - this.tetheredTarget.y); if (dist > 150) { const angle = Math.atan2(this.y - this.tetheredTarget.y, this.x - this.tetheredTarget.x); this.tetheredTarget.vx += Math.cos(angle) * 0.5; this.tetheredTarget.vy += Math.sin(angle) * 0.5; } this.tetheredTarget.spin -= 100 * deltaTime; this.tetherDuration -= deltaTime; if(this.tetherDuration <= 0) this.tetheredTarget = null;}
                 if (this.isSlashing) { const dist = Math.hypot(this.x - this.slashTarget.x, this.y - this.slashTarget.y); if(dist < 20 && this.slashesLeft > 0) { this.slashesLeft--; if(this.slashesLeft > 0) this.slashTarget = { x: canvas.width - 50, y: center.y }; else this.isSlashing = false; } else { const angle = Math.atan2(this.slashTarget.y - this.y, this.slashTarget.x - this.x); this.vx = Math.cos(angle) * 40; this.vy = Math.sin(angle) * 40; this.afterImages.push({ x: this.x, y: this.y }); if (this.afterImages.length > 8) this.afterImages.shift(); } }
 
-
                 const distFromCenter = Math.hypot(this.x - center.x, this.y - center.y);
                 if (distFromCenter > 1 && !this.isCountering && !this.isSlashing) {
                     let gravityFactor;
@@ -475,15 +471,15 @@
 
                 this.x += this.vx * deltaTime;
                 this.y += this.vy * deltaTime;
-                // **MODIFICADO**: Desgaste de rotação reduzido para batalhas mais longas.
-                this.spin -= 0.01 * deltaTime; // REDUZIDO de 0.02
+                
+                // MODIFICADO PARA BATALHAS MAIS LONGAS
+                this.spin -= 0.005 * deltaTime;
                 if(!this.isSlashing) { this.vx *= 0.998; this.vy *= 0.998;}
                 
                 if (this.hpRegenRate > 0) {
                     this.hp = Math.min(this.baseStats.hp, this.hp + this.baseStats.hp * this.hpRegenRate * deltaTime / 1000);
                 }
 
-                // MODIFICADO PARA MELHOR PERFORMANCE
                 if (Math.random() > 0.7) {
                     particles.push(new Particle(this.x, this.y, this.shadowColor, 'movement'));
                 }
@@ -679,7 +675,6 @@
         }
         
         function startLaunchSequence() {
-            // CORRIGIDO: Usa style.display para mostrar a tela de contagem
             launchSequenceScreen.style.display = 'flex';
             let counter = 3;
             
@@ -697,7 +692,6 @@
                     launchText.offsetHeight;
                     launchText.style.animation = 'countdown-zoom 1s ease-in-out forwards';
                     setTimeout(() => {
-                        // CORRIGIDO: Usa style.display para esconder a tela de contagem
                         launchSequenceScreen.style.display = 'none';
                         gameActive = true;
                         lastTime = performance.now();
@@ -853,7 +847,6 @@
                         if (b1.isTethering && !b2.tetheredTarget) { b2.tetheredTarget = b1; b2.tetherDuration = 5000; logToBattle(`${b2.name} foi preso pelas correntes!`, 'log-ai');}
                         if (b2.isTethering && !b1.tetheredTarget) { b1.tetheredTarget = b2; b1.tetherDuration = 5000; logToBattle(`${b1.name} foi preso pelas correntes!`, 'log-ai');}
 
-
                         triggerShake(4, 400);
                         createCollisionSparks((b1.x + b2.x) / 2, (b1.y + b2.y) / 2);
 
@@ -868,16 +861,16 @@
                         const b1TypeAdv = getTypeAdvantage(b1.type, b2.type);
                         const b2TypeAdv = getTypeAdvantage(b2.type, b1.type);
                         
-                        // **MODIFICADO**: Dano base reduzido para batalhas mais longas.
-                        let b1HpDamage = Math.max(1, b2.stats.attack - (b1.stats.defense / 2)) * 4; // REDUZIDO de 10
-                        let b2HpDamage = Math.max(1, b1.stats.attack - (b2.stats.defense / 2)) * 4; // REDUZIDO de 10
+                        // MODIFICADO PARA BATALHAS MAIS LONGAS
+                        let b1HpDamage = Math.max(1, b2.stats.attack - (b1.stats.defense / 2)) * 2.5;
+                        let b2HpDamage = Math.max(1, b1.stats.attack - (b2.stats.defense / 2)) * 2.5;
 
                         b1HpDamage *= b2TypeAdv;
                         b2HpDamage *= b1TypeAdv;
 
-                        // **MODIFICADO**: Bônus de dano para tipo Ataque reduzido.
-                        if (b1.type === 'Attack') b2HpDamage *= 1.8; // REDUZIDO de 2.5
-                        if (b2.type === 'Attack') b1HpDamage *= 1.8; // REDUZIDO de 2.5
+                        // MODIFICADO PARA BATALHAS MAIS LONGAS
+                        if (b1.type === 'Attack') b2HpDamage *= 1.4;
+                        if (b2.type === 'Attack') b1HpDamage *= 1.4;
                         
                         b1HpDamage *= (b1.damageReduction || 1.0);
                         b2HpDamage *= (b2.damageReduction || 1.0);
@@ -927,7 +920,6 @@
         }
         
         function createCollisionSparks(x, y) {
-            // MODIFICADO PARA MELHOR PERFORMANCE
             const sparkCount = 15 + Math.random() * 10;
             const mainOpponent = beys.find(b => !b.isPlayer);
             for (let i = 0; i < sparkCount; i++) { 
