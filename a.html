@@ -483,7 +483,8 @@
                     this.hp = Math.min(this.baseStats.hp, this.hp + this.baseStats.hp * this.hpRegenRate * deltaTime / 1000);
                 }
 
-                if (Math.random() > 0.02) {
+                // MODIFICADO PARA MELHOR PERFORMANCE
+                if (Math.random() > 0.7) {
                     particles.push(new Particle(this.x, this.y, this.shadowColor, 'movement'));
                 }
 
@@ -926,7 +927,8 @@
         }
         
         function createCollisionSparks(x, y) {
-            const sparkCount = 40 + Math.random() * 20;
+            // MODIFICADO PARA MELHOR PERFORMANCE
+            const sparkCount = 15 + Math.random() * 10;
             const mainOpponent = beys.find(b => !b.isPlayer);
             for (let i = 0; i < sparkCount; i++) { 
                 const color = Math.random() > 0.5 ? player.shadowColor : (mainOpponent ? mainOpponent.shadowColor : '#ffffff');
