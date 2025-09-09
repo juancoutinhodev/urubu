@@ -215,6 +215,11 @@
             { id: 'genesis', name: 'Regalia Genesis', type: 'Stamina', color: '#e9d8a6', shadowColor: '#ee9b00', stats: { attack: 7, defense: 12, stamina: 340000, hp: 5200 }, specialAbility: { name: "Genesis Reboot", duration: 10000, effect: (self) => { self.spin = self.baseStats.stamina; self.damageReduction = 0.4; logToBattle(`${self.name} reinicia sua rotação!`, `log-player`); } } },
             { id: 'dragon', name: 'Command Dragon', type: 'Attack', color: '#c9184a', shadowColor: '#ff4d6d', stats: { attack: 23, defense: 5, stamina: 150000, hp: 3800 }, specialAbility: { name: "Impulso Triplo", duration: 20000, effect: (self) => { self.stats.attack *= 2; self.specialAttackCount = 3; self.specialAttackCooldown = 50; } } },
 
+            // Bey Originais (Meme)
+            { id: 'sixtyseven', name: '67', type: 'Attack', color: '#212121', shadowColor: '#FFFFFF', stats: { attack: 27, defense: 5, stamina: 145000, hp: 3900 }, specialAbility: { name: "Fúria do Colosso", duration: 15000, effect: (self, opponent) => { self.radius *= 2.5; self.stats.attack *= 6; self.isShootingLightning = true; self.lightningCooldown = 0; logToBattle(`${self.name} se expande em uma fúria colossal!`, `log-${self.isPlayer ? 'player' : 'ai'}`);} } },
+            { id: 'metroman', name: 'Metroman', type: 'Attack', color: '#FFFFFF', shadowColor: '#FFD700', stats: { attack: 29, defense: 8, stamina: 160000, hp: 4200 }, specialAbility: { name: "Velocidade da Luz", duration: 8000, effect: (self) => { self.stats.attack *= 8; self.isLightSpeed = true; self.lightSpeedCooldown = 0; self.damageReduction = 0.1; } } },
+            { id: 'megamind', name: 'Megamente', type: 'Balance', color: '#3A86FF', shadowColor: '#03045E', stats: { attack: 16, defense: 16, stamina: 190000, hp: 4800 }, specialAbility: { name: "Raio Desidratador", duration: 10000, effect: (self, opponent) => { if (!opponent) return; logToBattle(`${self.name} dispara o Raio Desidratador em ${opponent.name}!`, `log-${self.isPlayer ? 'player' : 'ai'}`); opponent.radius = 5; opponent.isShrunk = true; opponent.shrunkDuration = 8000; self.stats.attack *= 10; self.isHuntingShrunk = true; self.huntedTarget = opponent;} } },
+
             // Bey Original
             { id: 'ghostbey', name: 'GhostBey', type: 'Balance', color: '#9d4edd', shadowColor: '#c77dff', stats: { attack: 20, defense: 15, stamina: 270000, hp: 9000 }, specialAbility: { name: "Ataque Intangível", duration: 20000, effect: (self, opponent) => { self.damageReduction = 0.1; self.stats.attack *= 4; if(opponent) opponent.hp -= 800; } } }
         ];
@@ -295,6 +300,7 @@
                 
                 this.isPlayer = isPlayer;
                 this.radius = 15;
+                this.originalRadius = 15;
                 this.balanceMode = 'attack';
                 this.isBalance = this.type === 'Balance';
                 
@@ -340,6 +346,7 @@
                 this.specialAttackCooldown = 0;
                 this.balanceMode = 'attack';
                 this.damageReduction = this.permanentUpgrades.damageReduction;
+                this.radius = this.originalRadius;
                 
                 this.isCountering = false;
                 this.isDrainingAura = false;
@@ -348,6 +355,13 @@
                 this.isTethering = false;
                 this.tetheredTarget = null;
                 this.isVortex = false;
+                this.isShootingLightning = false;
+                this.isLightSpeed = false;
+                this.isShrunk = false;
+                this.shrunkDuration = 0;
+                this.isHuntingShrunk = false;
+                this.huntedTarget = null;
+
 
                 this.applyBalanceMode();
             }
@@ -441,12 +455,60 @@
 
             update(deltaTime) {
                 if (!this.isActive) return;
-                
+
+                // --- HABILIDADES PASSIVAS E ATIVAS ---
                 if (this.id === 'fafnir') {
                     const spinPercent = this.spin / this.baseStats.stamina;
                     const defenseBonus = 1 + (3 * (1 - Math.min(1, spinPercent)));
                     this.stats.defense = this.baseStats.defense * defenseBonus;
                 }
+
+                if (this.isShrunk) {
+                    this.shrunkDuration -= deltaTime;
+                    if (this.shrunkDuration <= 0) {
+                        this.isShrunk = false;
+                        this.radius = this.originalRadius || 15;
+                        logToBattle(`${this.name} voltou ao seu tamanho normal!`, 'log-narrator');
+                    }
+                }
+
+                if (this.isShootingLightning && this.specialActive) {
+                    this.lightningCooldown -= deltaTime;
+                    if (this.lightningCooldown <= 0) {
+                        const opponent = getClosestOpponent(this);
+                        if (opponent && opponent.isActive) {
+                            opponent.hp -= 200; // Dano direto do raio
+                            for(let i = 0; i < 3; i++) {
+                                particles.push(new Particle(opponent.x, opponent.y, '#FFFFFF', 'collision', { life: 20, size: Math.random() * 15 + 5, speed: 2 }));
+                            }
+                        }
+                        this.lightningCooldown = 40;
+                    }
+                }
+
+                if (this.isHuntingShrunk && this.huntedTarget && this.huntedTarget.isActive) {
+                    const angle = Math.atan2(this.huntedTarget.y - this.y, this.huntedTarget.x - this.x);
+                    this.vx = Math.cos(angle) * 30;
+                    this.vy = Math.sin(angle) * 30;
+                } else if (this.isHuntingShrunk) {
+                    this.isHuntingShrunk = false;
+                }
+                
+                if (this.isLightSpeed && this.specialActive) {
+                    this.lightSpeedCooldown -= deltaTime;
+                    if(this.lightSpeedCooldown <= 0) {
+                        const opponent = beys.find(b => b !== this && b.isActive);
+                        if (opponent) {
+                             const angle = Math.atan2(opponent.y - this.y, opponent.x - this.x);
+                             this.vx = Math.cos(angle) * 60;
+                             this.vy = Math.sin(angle) * 60;
+                             this.afterImages.push({ x: this.x, y: this.y });
+                             if (this.afterImages.length > 10) this.afterImages.shift();
+                        }
+                        this.lightSpeedCooldown = 15;
+                    }
+                }
+
 
                 if (this.isCountering) this.specialDuration -= deltaTime;
                 if (this.isDrainingAura) { beys.filter(b => b !== this && b.isActive).forEach(opp => { const dist = Math.hypot(this.x - opp.x, this.y - opp.y); if (dist < 100) { const drain = 250 * deltaTime; opp.spin -= drain; this.spin += drain / 2; } }); }
@@ -454,7 +516,7 @@
                 if (this.isSlashing) { const dist = Math.hypot(this.x - this.slashTarget.x, this.y - this.slashTarget.y); if(dist < 20 && this.slashesLeft > 0) { this.slashesLeft--; if(this.slashesLeft > 0) this.slashTarget = { x: canvas.width - 50, y: center.y }; else this.isSlashing = false; } else { const angle = Math.atan2(this.slashTarget.y - this.y, this.slashTarget.x - this.x); this.vx = Math.cos(angle) * 40; this.vy = Math.sin(angle) * 40; this.afterImages.push({ x: this.x, y: this.y }); if (this.afterImages.length > 8) this.afterImages.shift(); } }
 
                 const distFromCenter = Math.hypot(this.x - center.x, this.y - center.y);
-                if (distFromCenter > 1 && !this.isCountering && !this.isSlashing) {
+                if (distFromCenter > 1 && !this.isCountering && !this.isSlashing && !this.isHuntingShrunk && !this.isLightSpeed) {
                     let gravityFactor;
                     switch(this.type) {
                         case 'Defense': gravityFactor = 0.15; break;
@@ -472,9 +534,8 @@
                 this.x += this.vx * deltaTime;
                 this.y += this.vy * deltaTime;
                 
-                // MODIFICADO PARA BATALHAS MAIS LONGAS
                 this.spin -= 0.005 * deltaTime;
-                if(!this.isSlashing) { this.vx *= 0.998; this.vy *= 0.998;}
+                if(!this.isSlashing && !this.isHuntingShrunk && !this.isLightSpeed) { this.vx *= 0.998; this.vy *= 0.998;}
                 
                 if (this.hpRegenRate > 0) {
                     this.hp = Math.min(this.baseStats.hp, this.hp + this.baseStats.hp * this.hpRegenRate * deltaTime / 1000);
@@ -558,11 +619,16 @@
                 this.damageReduction = this.permanentUpgrades.damageReduction;
                 this.specialAttackCount = 0;
                 this.afterImages = [];
+                this.radius = this.originalRadius;
                 this.isCountering = false;
                 this.isDrainingAura = false;
                 this.isSlashing = false;
                 this.isTethering = false;
                 this.isVortex = false;
+                this.isShootingLightning = false;
+                this.isLightSpeed = false;
+                this.isHuntingShrunk = false;
+                this.huntedTarget = null;
                 if(this.tetheredTarget) this.tetheredTarget = null;
                 logToBattle(`${this.name} voltou ao normal.`, 'log-narrator');
                 if (this.isBalance) this.applyBalanceMode();
@@ -842,6 +908,20 @@
                     const distance = Math.hypot(dx, dy);
 
                     if (distance < b1.radius + b2.radius) {
+                        // Lógica especial de Habilidades de Colisão
+                        if ((b1.isHuntingShrunk && b2.isShrunk && b1.huntedTarget === b2) || (b2.isHuntingShrunk && b1.isShrunk && b2.huntedTarget === b1)) {
+                            const hunter = b1.isHuntingShrunk ? b1 : b2;
+                            const prey = b1.isShrunk ? b1 : b2;
+                            logToBattle(`${hunter.name} esmaga ${prey.name}! APRESENTAÇÃO!`, 'log-narrator');
+                            prey.hp = 0;
+                            prey.spin = 0;
+                            hunter.isHuntingShrunk = false;
+                            for (let k = 0; k < 50; k++) {
+                                particles.push(new Particle(prey.x, prey.y, prey.shadowColor, 'collision', { life: 60, size: Math.random() * 6 + 3, speed: Math.random() * 10 + 5 }));
+                            }
+                            continue; // Pula a colisão normal
+                        }
+
                         if (b1.isCountering) { b1.hp += b2.stats.attack * 10; b1.isCountering = false; const angle = Math.atan2(b2.y - b1.y, b2.x - b1.x); b1.vx = Math.cos(angle) * 50; b1.vy = Math.sin(angle) * 50; logToBattle(`${b1.name} executa um contra-ataque perfeito!`, 'log-player'); return; }
                         if (b2.isCountering) { b2.hp += b1.stats.attack * 10; b2.isCountering = false; const angle = Math.atan2(b1.y - b2.y, b1.x - b2.x); b2.vx = Math.cos(angle) * 50; b2.vy = Math.sin(angle) * 50; logToBattle(`${b2.name} executa um contra-ataque perfeito!`, 'log-player'); return; }
                         if (b1.isTethering && !b2.tetheredTarget) { b2.tetheredTarget = b1; b2.tetherDuration = 5000; logToBattle(`${b2.name} foi preso pelas correntes!`, 'log-ai');}
@@ -861,14 +941,12 @@
                         const b1TypeAdv = getTypeAdvantage(b1.type, b2.type);
                         const b2TypeAdv = getTypeAdvantage(b2.type, b1.type);
                         
-                        // MODIFICADO PARA BATALHAS MAIS LONGAS
                         let b1HpDamage = Math.max(1, b2.stats.attack - (b1.stats.defense / 2)) * 2.5;
                         let b2HpDamage = Math.max(1, b1.stats.attack - (b2.stats.defense / 2)) * 2.5;
 
                         b1HpDamage *= b2TypeAdv;
                         b2HpDamage *= b1TypeAdv;
 
-                        // MODIFICADO PARA BATALHAS MAIS LONGAS
                         if (b1.type === 'Attack') b2HpDamage *= 1.4;
                         if (b2.type === 'Attack') b1HpDamage *= 1.4;
                         
@@ -878,8 +956,8 @@
                         if (Math.random() < (b1.criticalChance || 0)) { b2HpDamage *= 2; if(b1.isPlayer) logToBattle(`${b1.name} acerta um golpe CRÍTICO!`, 'log-player'); }
                         if (Math.random() < (b2.criticalChance || 0)) { b1HpDamage *= 2; if(b2.isPlayer) logToBattle(`${b2.name} acerta um golpe CRÍTICO!`, 'log-player'); }
                         
-                        b1.hp -= b1HpDamage;
-                        b2.hp -= b2HpDamage;
+                        if(!b1.isShrunk) b1.hp -= b1HpDamage;
+                        if(!b2.isShrunk) b2.hp -= b2HpDamage;
                         
                         if (b1.id === 'fafnir') {
                             const spinGained = b1HpDamage * 50; 
