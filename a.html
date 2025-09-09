@@ -238,11 +238,13 @@
             { id: 'dragon', name: 'Command Dragon', type: 'Attack', color: '#c9184a', shadowColor: '#ff4d6d', stats: { attack: 23, defense: 5, stamina: 150000, hp: 3800 }, specialAbility: { name: "Impulso Triplo", duration: 20000, effect: (self) => { self.stats.attack *= 2; self.specialAttackCount = 3; self.specialAttackCooldown = 50; } } },
 
             // Bey Originais (Meme)
-            { id: 'sixtyseven', name: '67', type: 'Attack', color: '#212121', shadowColor: '#FFFFFF', stats: { attack: 27, defense: 5, stamina: 145000, hp: 3900 }, specialAbility: { name: "Fúria do Colosso", duration: 15000, effect: (self, opponent) => { self.radius *= 2.5; self.stats.attack *= 6; self.isShootingLightning = true; self.lightningCooldown = 0; logToBattle(`${self.name} se expande em uma fúria colossal!`, `log-${self.isPlayer ? 'player' : 'ai'}`);} } },
+            { id: 'sixtyseven', name: '67', type: 'Attack', color: '#212121', shadowColor: '#FFFFFF', stats: { attack: 27, defense: 5, stamina: 145000, hp: 3900 }, specialAbility: { name: "Fúria do Colosso", duration: 15000, effect: (self) => { self.radius *= 2.5; self.stats.attack *= 6; logToBattle(`${self.name} se expande em uma fúria colossal!`, `log-${self.isPlayer ? 'player' : 'ai'}`);} } },
             { id: 'metroman', name: 'Metroman', type: 'Attack', color: '#FFFFFF', shadowColor: '#FFD700', stats: { attack: 29, defense: 15, stamina: 160000, hp: 4200 }, specialAbility: { name: "Velocidade da Luz", duration: 8000, effect: (self) => { self.stats.attack *= 8; self.isLightSpeed = true; self.lightSpeedCooldown = 0; self.damageReduction = 0.1; self.immuneToKnockback = true; } } },
-            { id: 'megamind', name: 'Megamente', type: 'Balance', color: '#3A86FF', shadowColor: '#03045E', stats: { attack: 16, defense: 16, stamina: 190000, hp: 4800 }, specialAbility: { name: "Raio Desidratador", duration: 10000, effect: (self, opponent) => { self.isShootingDehydratorRay = true; } } },
             { id: 'flash', name: 'Flash (Wally West)', type: 'Attack', color: '#FF0000', shadowColor: '#FFD700', stats: { attack: 30, defense: 6, stamina: 180000, hp: 4000 }, specialAbility: { name: "Força de Aceleração", duration: 8000, effect: (self) => { self.stats.attack *= 9; self.isLightSpeed = true; self.lightSpeedCooldown = 0; self.damageReduction = 0.2; self.immuneToKnockback = true; } } },
             { id: 'syndrome', name: 'Síndrome', type: 'Balance', color: '#F8F8F8', shadowColor: '#FF4500', stats: { attack: 18, defense: 14, stamina: 175000, hp: 4500 }, specialAbility: { name: "Chamar Omnidroide", duration: 15000, effect: (self) => { logToBattle(`${self.name} chama o Omnidroide!`, `log-${self.isPlayer ? 'player' : 'ai'}`); spawnOmnidroid(self); } } },
+            { id: 'gojo', name: 'Satoru Gojo', type: 'Balance', color: '#000000', shadowColor: '#800080', stats: { attack: 25, defense: 25, stamina: 250000, hp: 6000 }, specialAbility: { name: "Vazio Infinito", customCost: 200, duration: 8000, effect: (self, opponent) => { isDomainExpansionActive = true; self.isUsingDomain = true; if(opponent) opponent.isTrappedInDomain = true;} } },
+            { id: 'batman', name: 'Batman', type: 'Balance', color: '#333333', shadowColor: '#FFFF00', stats: { attack: 22, defense: 22, stamina: 200000, hp: 5500 }, specialAbility: { name: "Protocolo Hellbat", duration: 15000, effect: (self) => { logToBattle(`${self.name} ativa a armadura Hellbat!`, `log-${self.isPlayer ? 'player' : 'ai'}`); self.stats.attack *= 4; self.stats.defense *= 6; self.originalColor = self.color; self.color = '#8B0000'; self.isThrowingBatarangs = true; self.batarangCooldown = 0;} } },
+
             
             // Bey Original
             { id: 'ghostbey', name: 'GhostBey', type: 'Balance', color: '#9d4edd', shadowColor: '#c77dff', stats: { attack: 20, defense: 15, stamina: 270000, hp: 9000 }, specialAbility: { name: "Ataque Intangível", duration: 20000, effect: (self, opponent) => { self.damageReduction = 0.1; self.stats.attack *= 4; if(opponent) opponent.hp -= 800; } } }
@@ -311,6 +313,8 @@
         let currentStage = 0;
         let bossDefeats = 0; 
         let isPlayerAuto = false;
+        let isDomainExpansionActive = false;
+        let domainExpansionFade = 0;
         window.TIME_SCALE = 2.8;
 
         // --- CLASSES ---
@@ -320,6 +324,7 @@
                 this.name = data.name;
                 this.type = data.type;
                 this.color = data.color;
+                this.originalColor = data.color;
                 this.shadowColor = data.shadowColor;
                 this.baseStats = JSON.parse(JSON.stringify(data.stats)); 
                 this.stats = JSON.parse(JSON.stringify(data.stats));
@@ -380,6 +385,7 @@
                 this.balanceMode = 'attack';
                 this.damageReduction = this.permanentUpgrades.damageReduction;
                 this.radius = this.originalRadius;
+                this.color = this.originalColor;
                 
                 this.isCountering = false;
                 this.isDrainingAura = false;
@@ -388,14 +394,12 @@
                 this.isTethering = false;
                 this.tetheredTarget = null;
                 this.isVortex = false;
-                this.isShootingLightning = false;
                 this.isLightSpeed = false;
                 this.immuneToKnockback = false;
-                this.isShrunk = false;
-                this.shrunkDuration = 0;
-                this.isHuntingShrunk = false;
-                this.huntedTarget = null;
-                this.isShootingDehydratorRay = false;
+                this.isUsingDomain = false;
+                this.isTrappedInDomain = false;
+                this.isThrowingBatarangs = false;
+                this.batarangCooldown = 0;
 
 
                 this.applyBalanceMode();
@@ -491,48 +495,49 @@
             update(deltaTime) {
                 if (!this.isActive) return;
 
+                if(this.isTrappedInDomain) {
+                    this.vx *= 0.8;
+                    this.vy *= 0.8;
+                    this.hp -= 30 * deltaTime;
+                    this.spin -= 100 * deltaTime;
+                }
+
+                if(this.isUsingDomain) {
+                    this.hp -= 20 * deltaTime; // Gojo sacrifices his own HP
+                }
+                
+                if (this.isThrowingBatarangs && this.specialActive) {
+                    this.batarangCooldown -= deltaTime;
+                    if(this.batarangCooldown <= 0) {
+                        const opponent = getClosestOpponent(this);
+                        if(opponent) {
+                            const batarang = new Projectile(this.x, this.y, opponent, this.shadowColor, (target) => {
+                                target.hp -= 50;
+                                for(let k=0; k<10; k++) particles.push(new Particle(target.x, target.y, '#ff6600', 'collision', { life: 30, speed: 5, size: 4 }));
+                                beys.forEach(b => {
+                                    if(b.isActive && b.isPlayer !== this.isPlayer) {
+                                        const dist = Math.hypot(target.x - b.x, target.y - b.y);
+                                        if (dist < 75) b.hp -= 100;
+                                    }
+                                });
+                            });
+                            projectiles.push(batarang);
+                        }
+                        this.batarangCooldown = 30; // Cooldown between throws
+                    }
+                }
+                
                 // --- HABILIDADES PASSIVAS E ATIVAS ---
                 if (this.id === 'fafnir') {
                     const spinPercent = this.spin / this.baseStats.stamina;
                     const defenseBonus = 1 + (3 * (1 - Math.min(1, spinPercent)));
                     this.stats.defense = this.baseStats.defense * defenseBonus;
                 }
-
-                if (this.isShrunk) {
-                    this.shrunkDuration -= deltaTime;
-                    if (this.shrunkDuration <= 0) {
-                        this.isShrunk = false;
-                        this.radius = this.originalRadius || 15;
-                        logToBattle(`${this.name} voltou ao seu tamanho normal!`, 'log-narrator');
-                    }
-                }
-
-                if (this.isShootingLightning && this.specialActive) {
-                    this.lightningCooldown -= deltaTime;
-                    if (this.lightningCooldown <= 0) {
-                        const opponent = getClosestOpponent(this);
-                        if (opponent && opponent.isActive) {
-                            opponent.hp -= 200;
-                            for(let i = 0; i < 3; i++) {
-                                particles.push(new Particle(opponent.x, opponent.y, '#FFFFFF', 'collision', { life: 20, size: Math.random() * 15 + 5, speed: 2 }));
-                            }
-                        }
-                        this.lightningCooldown = 40;
-                    }
-                }
-
-                if (this.isHuntingShrunk && this.huntedTarget && this.huntedTarget.isActive) {
-                    const angle = Math.atan2(this.huntedTarget.y - this.y, this.huntedTarget.x - this.x);
-                    this.vx = Math.cos(angle) * 30;
-                    this.vy = Math.sin(angle) * 30;
-                } else if (this.isHuntingShrunk) {
-                    this.isHuntingShrunk = false;
-                }
                 
                 if (this.isLightSpeed && this.specialActive) {
                     this.lightSpeedCooldown -= deltaTime;
                     if(this.lightSpeedCooldown <= 0) {
-                        const opponent = beys.find(b => b !== this && b.isActive);
+                        const opponent = getClosestOpponent(this);
                         if (opponent) {
                              const angle = Math.atan2(opponent.y - this.y, opponent.x - this.x);
                              this.vx = Math.cos(angle) * 60;
@@ -544,30 +549,13 @@
                     }
                 }
 
-                if (this.isShootingDehydratorRay) {
-                    const opponent = getClosestOpponent(this);
-                     if(opponent) {
-                        const ray = new Projectile(this.x, this.y, opponent, '#3A86FF', (target) => {
-                            logToBattle(`${target.name} foi atingido pelo Raio Desidratador!`, 'log-narrator');
-                            target.isShrunk = true;
-                            target.shrunkDuration = 8000;
-                            target.radius = 5;
-                            this.stats.attack *= 10;
-                            this.isHuntingShrunk = true;
-                            this.huntedTarget = target;
-                        });
-                        projectiles.push(ray);
-                    }
-                    this.isShootingDehydratorRay = false;
-                }
-
                 if (this.isCountering) this.specialDuration -= deltaTime;
                 if (this.isDrainingAura) { beys.filter(b => b !== this && b.isActive).forEach(opp => { const dist = Math.hypot(this.x - opp.x, this.y - opp.y); if (dist < 100) { const drain = 250 * deltaTime; opp.spin -= drain; this.spin += drain / 2; } }); }
                 if (this.tetheredTarget) { const dist = Math.hypot(this.x - this.tetheredTarget.x, this.y - this.tetheredTarget.y); if (dist > 150) { const angle = Math.atan2(this.y - this.tetheredTarget.y, this.x - this.tetheredTarget.x); this.tetheredTarget.vx += Math.cos(angle) * 0.5; this.tetheredTarget.vy += Math.sin(angle) * 0.5; } this.tetheredTarget.spin -= 100 * deltaTime; this.tetherDuration -= deltaTime; if(this.tetherDuration <= 0) this.tetheredTarget = null;}
                 if (this.isSlashing) { const dist = Math.hypot(this.x - this.slashTarget.x, this.y - this.slashTarget.y); if(dist < 20 && this.slashesLeft > 0) { this.slashesLeft--; if(this.slashesLeft > 0) this.slashTarget = { x: canvas.width - 50, y: center.y }; else this.isSlashing = false; } else { const angle = Math.atan2(this.slashTarget.y - this.y, this.slashTarget.x - this.x); this.vx = Math.cos(angle) * 40; this.vy = Math.sin(angle) * 40; this.afterImages.push({ x: this.x, y: this.y }); if (this.afterImages.length > 8) this.afterImages.shift(); } }
 
                 const distFromCenter = Math.hypot(this.x - center.x, this.y - center.y);
-                if (distFromCenter > 1 && !this.isCountering && !this.isSlashing && !this.isHuntingShrunk && !this.isLightSpeed) {
+                if (distFromCenter > 1 && !this.isCountering && !this.isSlashing && !this.isLightSpeed && !this.isTrappedInDomain) {
                     let gravityFactor;
                     switch(this.type) {
                         case 'Defense': gravityFactor = 0.15; break;
@@ -586,7 +574,7 @@
                 this.y += this.vy * deltaTime;
                 
                 this.spin -= 0.005 * deltaTime;
-                if(!this.isSlashing && !this.isHuntingShrunk && !this.isLightSpeed) { this.vx *= 0.998; this.vy *= 0.998;}
+                if(!this.isSlashing && !this.isLightSpeed) { this.vx *= 0.998; this.vy *= 0.998;}
                 
                 if (this.hpRegenRate > 0) {
                     this.hp = Math.min(this.baseStats.hp, this.hp + this.baseStats.hp * this.hpRegenRate * deltaTime / 1000);
@@ -624,7 +612,7 @@
             
             chargePower(amount) {
                 const multiplier = this.powerGainMultiplier || 1;
-                if(this.power < 100) { this.power = Math.min(100, this.power + amount * multiplier); }
+                if(this.power < (this.specialAbility.customCost || 100)) { this.power = Math.min((this.specialAbility.customCost || 100), this.power + amount * multiplier); }
             }
 
             performDashAttack(opponent) {
@@ -648,7 +636,7 @@
             }
             
             activateSpecial(opponent) {
-                const specialCost = SPECIAL_COST * (this.specialAbility.costReduction || 1);
+                const specialCost = (this.specialAbility.customCost || SPECIAL_COST) * (this.specialAbility.costReduction || 1);
                 if (!this.isActive || this.specialActive || this.power < specialCost) return;
                 this.power = 0;
                 this.specialActive = true;
@@ -665,22 +653,29 @@
 
             deactivateSpecial() {
                 if (!this.specialActive) return;
+                
+                if(this.isUsingDomain) {
+                    isDomainExpansionActive = false;
+                    beys.forEach(b => b.isTrappedInDomain = false);
+                }
+
                 this.specialActive = false;
                 this.stats = JSON.parse(JSON.stringify(this.baseStats));
                 this.damageReduction = this.permanentUpgrades.damageReduction;
                 this.specialAttackCount = 0;
                 this.afterImages = [];
                 this.radius = this.originalRadius;
+                this.color = this.originalColor;
                 this.isCountering = false;
                 this.isDrainingAura = false;
                 this.isSlashing = false;
                 this.isTethering = false;
                 this.isVortex = false;
-                this.isShootingLightning = false;
                 this.isLightSpeed = false;
                 this.immuneToKnockback = false;
-                this.isHuntingShrunk = false;
-                this.huntedTarget = null;
+                this.isUsingDomain = false;
+                this.isTrappedInDomain = false;
+                this.isThrowingBatarangs = false;
                 if(this.tetheredTarget) this.tetheredTarget = null;
                 logToBattle(`${this.name} voltou ao normal.`, 'log-narrator');
                 if (this.isBalance) this.applyBalanceMode();
@@ -898,6 +893,8 @@
                 isMinion: true
             };
             const omnidroid = new Beyblade(omnidroidData, false);
+            omnidroid.radius = 25; // Torná-lo gigante
+            omnidroid.originalRadius = 25;
             omnidroid.x = syndrome.x + (Math.random() * 40 - 20);
             omnidroid.y = syndrome.y + (Math.random() * 40 - 20);
             beys.push(omnidroid);
@@ -970,7 +967,7 @@
                 let aiNameText = mainOpponent.name;
                  if (GAME_MODE === 'roguelite') {
                     const activeMinions = beys.filter(b => b.isMinion && b.isActive).length;
-                    const activeOpponents = opponents.filter(b => b.isActive).length + activeMinions;
+                    const activeOpponents = opponents.filter(b => b.isActive && !b.isPlayer).length;
                     if (activeOpponents > 1) {
                          aiNameText += ` (+${activeOpponents - 1})`;
                     }
@@ -1010,7 +1007,8 @@
                     }
                 }
 
-                if (currentAI.power >= SPECIAL_COST * (currentAI.specialAbility.costReduction || 1) && (currentAI.spin < currentAI.baseStats.stamina * 0.5 || currentAI.hp < currentAI.baseStats.hp * 0.5)) {
+                const specialCost = (currentAI.specialAbility.customCost || SPECIAL_COST) * (currentAI.specialAbility.costReduction || 1);
+                if (currentAI.power >= specialCost && (currentAI.spin < currentAI.baseStats.stamina * 0.5 || currentAI.hp < currentAI.baseStats.hp * 0.5)) {
                     currentAI.activateSpecial(opponent);
                 } else if (currentAI.power >= ATTACK_COST && dist < 250 && Math.random() < 0.7) {
                     currentAI.performDashAttack(opponent);
@@ -1030,6 +1028,12 @@
             const deltaTime = (currentTime - lastTime) / 16.67 * window.TIME_SCALE;
             lastTime = currentTime;
             
+            if(isDomainExpansionActive && domainExpansionFade < 0.9) {
+                domainExpansionFade = Math.min(0.9, domainExpansionFade + 0.02);
+            } else if (!isDomainExpansionActive && domainExpansionFade > 0) {
+                domainExpansionFade = Math.max(0, domainExpansionFade - 0.02);
+            }
+
             if (isPlayerAuto) {
                 runAI(player, deltaTime);
             }
@@ -1083,20 +1087,7 @@
                     const distance = Math.hypot(dx, dy);
 
                     if (distance < b1.radius + b2.radius) {
-                        // Lógica especial de Habilidades de Colisão
-                        if ((b1.isHuntingShrunk && b2.isShrunk && b1.huntedTarget === b2) || (b2.isHuntingShrunk && b1.isShrunk && b2.huntedTarget === b1)) {
-                            const hunter = b1.isHuntingShrunk ? b1 : b2;
-                            const prey = b1.isShrunk ? b1 : b2;
-                            logToBattle(`${hunter.name} esmaga ${prey.name}! APRESENTAÇÃO!`, 'log-narrator');
-                            prey.hp = 0;
-                            prey.spin = 0;
-                            hunter.isHuntingShrunk = false;
-                            for (let k = 0; k < 50; k++) {
-                                particles.push(new Particle(prey.x, prey.y, prey.shadowColor, 'collision', { life: 60, size: Math.random() * 6 + 3, speed: Math.random() * 10 + 5 }));
-                            }
-                            continue;
-                        }
-
+                        
                         if (b1.isCountering) { b1.hp += b2.stats.attack * 10; b1.isCountering = false; const angle = Math.atan2(b2.y - b1.y, b2.x - b1.x); b1.vx = Math.cos(angle) * 50; b1.vy = Math.sin(angle) * 50; logToBattle(`${b1.name} executa um contra-ataque perfeito!`, 'log-player'); return; }
                         if (b2.isCountering) { b2.hp += b1.stats.attack * 10; b2.isCountering = false; const angle = Math.atan2(b1.y - b2.y, b1.x - b2.x); b2.vx = Math.cos(angle) * 50; b2.vy = Math.sin(angle) * 50; logToBattle(`${b2.name} executa um contra-ataque perfeito!`, 'log-player'); return; }
                         if (b1.isTethering && !b2.tetheredTarget) { b2.tetheredTarget = b1; b2.tetherDuration = 5000; logToBattle(`${b2.name} foi preso pelas correntes!`, 'log-ai');}
@@ -1108,7 +1099,7 @@
                         const knockback = 2 + (Math.hypot(b1.vx - b2.vx, b1.vy - b2.vy) / 10);
                         const normalX = dx / distance;
                         const normalY = dy / distance;
-                        const p = 2 * (b1.vx * normalX + b1.vy * normalY - b2.vx * normalX - b2.vy * normalY) / 2;
+                        const p = 2 * (b1.vx * normalX + b1.vy * normalY - b2.vx * normalX - b2.vy * normalY) / (b1.isMinion || b2.isMinion ? 1.5 : 2);
                         
                         if(!b1.isSlashing && !b1.immuneToKnockback) { b1.vx -= (p + knockback) * normalX; b1.vy -= (p + knockback) * normalY; }
                         if(!b2.isSlashing && !b2.immuneToKnockback) { b2.vx += (p + knockback) * normalX; b2.vy += (p + knockback) * normalY; }
@@ -1128,11 +1119,11 @@
                         b1HpDamage *= (b1.damageReduction || 1.0);
                         b2HpDamage *= (b2.damageReduction || 1.0);
 
-                        if (Math.random() < (b1.criticalChance || 0)) { b2HpDamage *= 2; if(b1.isPlayer && !b1.isMinion) logToBattle(`${b1.name} acerta um golpe CRÍTICO!`, 'log-player'); }
-                        if (Math.random() < (b2.criticalChance || 0)) { b1HpDamage *= 2; if(b2.isPlayer && !b2.isMinion) logToBattle(`${b2.name} acerta um golpe CRÍTICO!`, 'log-player'); }
+                        if (Math.random() < (b1.criticalChance || 0)) { b2HpDamage *= 2; if(!b1.isMinion) logToBattle(`${b1.name} acerta um golpe CRÍTICO!`, `log-${b1.isPlayer ? 'player' : 'ai'}`); }
+                        if (Math.random() < (b2.criticalChance || 0)) { b1HpDamage *= 2; if(!b2.isMinion) logToBattle(`${b2.name} acerta um golpe CRÍTICO!`, `log-${b2.isPlayer ? 'player' : 'ai'}`); }
                         
-                        if(!b1.isShrunk) b1.hp -= b1HpDamage;
-                        if(!b2.isShrunk) b2.hp -= b2HpDamage;
+                        b1.hp -= b1HpDamage;
+                        b2.hp -= b2HpDamage;
                         
                         if (b1.id === 'fafnir') {
                             const spinGained = b1HpDamage * 50; 
@@ -1262,6 +1253,11 @@
             ctx.beginPath(); ctx.arc(center.x, center.y, innerRadius, 0, 2 * Math.PI); ctx.fillStyle = ig; ctx.fill();
             ctx.strokeStyle = 'rgba(144, 224, 239, 0.5)'; ctx.lineWidth = 5;
             ctx.beginPath(); ctx.arc(center.x, center.y, innerRadius, 0, 2 * Math.PI); ctx.stroke();
+            
+            if (isDomainExpansionActive || domainExpansionFade > 0) {
+                ctx.fillStyle = `rgba(0,0,0,${domainExpansionFade})`;
+                ctx.fillRect(0,0,canvas.width, canvas.height);
+            }
         }
         
         function updateAndDrawParticles(deltaTime) { 
@@ -1275,7 +1271,7 @@
             if (!player) return;
             document.getElementById('player-hp-bar').style.width = `${Math.max(0, player.hp / player.baseStats.hp) * 100}%`;
             document.getElementById('player-spin-bar').style.width = `${Math.max(0, player.spin / player.baseStats.stamina) * 100}%`;
-            document.getElementById('player-power-bar').style.width = `${player.power}%`;
+            document.getElementById('player-power-bar').style.width = `${(player.power / (player.specialAbility.customCost || SPECIAL_COST)) * 100}%`;
             
             const isPlayerDisabled = !player.isActive || !gameActive || isPlayerAuto;
             const playerAtkBtn = document.getElementById('player-attack-btn');
@@ -1285,7 +1281,7 @@
 
             playerAtkBtn.disabled = isPlayerDisabled || player.power < ATTACK_COST;
             playerRplBtn.disabled = isPlayerDisabled || player.power < REPEL_COST;
-            playerSpcBtn.disabled = isPlayerDisabled || player.power < SPECIAL_COST * (player.specialAbility.costReduction || 1);
+            playerSpcBtn.disabled = isPlayerDisabled || player.power < ((player.specialAbility.customCost || SPECIAL_COST) * (player.specialAbility.costReduction || 1));
             if (playerToggleBtn) { playerToggleBtn.disabled = isPlayerDisabled; }
 
             playerAtkBtn.classList.toggle('ready', !playerAtkBtn.disabled);
@@ -1303,7 +1299,7 @@
                 const opponentMaxHP = beys.filter(b => !b.isPlayer).reduce((sum, b) => sum + b.baseStats.hp, 0);
                 document.getElementById('ai-hp-bar').style.width = `${Math.max(0, opponentHP / opponentMaxHP) * 100}%`;
                 document.getElementById('ai-spin-bar').style.width = `${Math.max(0, mainOpponent.spin / mainOpponent.baseStats.stamina) * 100}%`;
-                document.getElementById('ai-power-bar').style.width = `${mainOpponent.power}%`;
+                document.getElementById('ai-power-bar').style.width = `${(mainOpponent.power / (mainOpponent.specialAbility.customCost || SPECIAL_COST)) * 100}%`;
             }
             
             const statsDisplay = document.getElementById('player-stats-display');
@@ -1335,6 +1331,7 @@
         startBattleBtn.addEventListener('click', startNewRun);
         restartBtn.addEventListener('click', () => {
             gameOverScreen.style.display = 'none';
+            gameArea.style.display = 'none';
             modeSelectionScreen.style.display = 'flex';
         });
         document.getElementById('player-attack-btn').addEventListener('click', () => { const target = getClosestOpponent(player); if (target) player.performDashAttack(target); });
