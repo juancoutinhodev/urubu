@@ -92,19 +92,40 @@
             from { transform: scale(0.5); opacity: 0; }
             to { transform: scale(1); opacity: 1; }
         }
+        .mode-selection button {
+            transition: all 0.2s ease-in-out;
+        }
+        .mode-selection button:hover {
+            transform: scale(1.05);
+        }
     </style>
 </head>
 <body class="bg-gray-900 flex items-center justify-center min-h-screen p-4">
 
     <div id="main-container" class="w-full max-w-7xl mx-auto">
 
-        <div id="selectionScreen" class="screen rounded-lg p-6 md:p-8 text-center flex flex-col items-center gap-6">
-            <h1 class="text-3xl md:text-5xl font-bold">ASCENSÃO ROGUELITE</h1>
-            <p class="text-base md:text-lg text-gray-400">Escolha seu Beyblade inicial para começar a jornada.</p>
-            <div class="selector">
+        <div id="modeSelectionScreen" class="screen rounded-lg p-8 text-center flex flex-col items-center gap-6">
+            <h1 class="text-4xl md:text-6xl font-bold">BEYBLADE SUPREMO</h1>
+            <p class="text-lg md:text-xl text-gray-400">Escolha o modo de jogo.</p>
+            <div class="flex flex-col md:flex-row gap-4 mt-4 w-full max-w-md">
+                <button id="rogueliteModeBtn" class="bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 px-8 rounded-lg text-xl w-full">Modo Aventura</button>
+                <button id="versusModeBtn" class="bg-red-600 hover:bg-red-500 text-white font-bold py-4 px-8 rounded-lg text-xl w-full">Modo Versus</button>
+            </div>
+        </div>
+
+
+        <div id="selectionScreen" class="screen hidden rounded-lg p-6 md:p-8 text-center flex flex-col items-center gap-6">
+            <h1 id="selectionTitle" class="text-3xl md:text-5xl font-bold"></h1>
+            <p id="selectionSubtitle" class="text-base md:text-lg text-gray-400"></p>
+            <div id="player1Selector" class="selector">
+                <label for="playerBeySelect" class="text-lg font-bold mb-2 block">JOGADOR 1</label>
                 <select id="playerBeySelect" class="bg-gray-800 border border-gray-600 rounded-lg p-3 text-lg md:text-xl w-72 md:w-80 text-center appearance-none"></select>
             </div>
-            <button id="startBattleBtn" class="bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-bold py-3 px-6 md:py-4 md:px-8 rounded-lg text-xl md:text-2xl transition-transform transform hover:scale-105">Iniciar Aventura!</button>
+             <div id="player2Selector" class="selector hidden mt-4">
+                <label for="aiBeySelect" class="text-lg font-bold mb-2 block">JOGADOR 2 (IA)</label>
+                <select id="aiBeySelect" class="bg-gray-800 border border-gray-600 rounded-lg p-3 text-lg md:text-xl w-72 md:w-80 text-center appearance-none"></select>
+            </div>
+            <button id="startBattleBtn" class="bg-yellow-500 hover:bg-yellow-400 text-gray-900 font-bold py-3 px-6 md:py-4 md:px-8 rounded-lg text-xl md:text-2xl transition-transform transform hover:scale-105 mt-4">Iniciar!</button>
         </div>
         
         <div id="gameArea" class="hidden flex flex-col items-center">
@@ -188,6 +209,7 @@
     const ATTACK_COST = 20;
     const REPEL_COST = 15;
     const SPECIAL_COST = 100;
+    let GAME_MODE = 'roguelite'; // 'roguelite' ou 'versus'
 
     document.addEventListener('DOMContentLoaded', () => {
         // --- DATABASE DE BEYBLADES ---
@@ -217,9 +239,11 @@
 
             // Bey Originais (Meme)
             { id: 'sixtyseven', name: '67', type: 'Attack', color: '#212121', shadowColor: '#FFFFFF', stats: { attack: 27, defense: 5, stamina: 145000, hp: 3900 }, specialAbility: { name: "Fúria do Colosso", duration: 15000, effect: (self, opponent) => { self.radius *= 2.5; self.stats.attack *= 6; self.isShootingLightning = true; self.lightningCooldown = 0; logToBattle(`${self.name} se expande em uma fúria colossal!`, `log-${self.isPlayer ? 'player' : 'ai'}`);} } },
-            { id: 'metroman', name: 'Metroman', type: 'Attack', color: '#FFFFFF', shadowColor: '#FFD700', stats: { attack: 29, defense: 8, stamina: 160000, hp: 4200 }, specialAbility: { name: "Velocidade da Luz", duration: 8000, effect: (self) => { self.stats.attack *= 8; self.isLightSpeed = true; self.lightSpeedCooldown = 0; self.damageReduction = 0.1; } } },
-            { id: 'megamind', name: 'Megamente', type: 'Balance', color: '#3A86FF', shadowColor: '#03045E', stats: { attack: 16, defense: 16, stamina: 190000, hp: 4800 }, specialAbility: { name: "Raio Desidratador", duration: 10000, effect: (self, opponent) => { if (!opponent) return; logToBattle(`${self.name} dispara o Raio Desidratador em ${opponent.name}!`, `log-${self.isPlayer ? 'player' : 'ai'}`); opponent.radius = 5; opponent.isShrunk = true; opponent.shrunkDuration = 8000; self.stats.attack *= 10; self.isHuntingShrunk = true; self.huntedTarget = opponent;} } },
-
+            { id: 'metroman', name: 'Metroman', type: 'Attack', color: '#FFFFFF', shadowColor: '#FFD700', stats: { attack: 29, defense: 15, stamina: 160000, hp: 4200 }, specialAbility: { name: "Velocidade da Luz", duration: 8000, effect: (self) => { self.stats.attack *= 8; self.isLightSpeed = true; self.lightSpeedCooldown = 0; self.damageReduction = 0.1; self.immuneToKnockback = true; } } },
+            { id: 'megamind', name: 'Megamente', type: 'Balance', color: '#3A86FF', shadowColor: '#03045E', stats: { attack: 16, defense: 16, stamina: 190000, hp: 4800 }, specialAbility: { name: "Raio Desidratador", duration: 10000, effect: (self, opponent) => { self.isShootingDehydratorRay = true; } } },
+            { id: 'flash', name: 'Flash (Wally West)', type: 'Attack', color: '#FF0000', shadowColor: '#FFD700', stats: { attack: 30, defense: 6, stamina: 180000, hp: 4000 }, specialAbility: { name: "Força de Aceleração", duration: 8000, effect: (self) => { self.stats.attack *= 9; self.isLightSpeed = true; self.lightSpeedCooldown = 0; self.damageReduction = 0.2; self.immuneToKnockback = true; } } },
+            { id: 'syndrome', name: 'Síndrome', type: 'Balance', color: '#F8F8F8', shadowColor: '#FF4500', stats: { attack: 18, defense: 14, stamina: 175000, hp: 4500 }, specialAbility: { name: "Chamar Omnidroide", duration: 15000, effect: (self) => { logToBattle(`${self.name} chama o Omnidroide!`, `log-${self.isPlayer ? 'player' : 'ai'}`); spawnOmnidroid(self); } } },
+            
             // Bey Original
             { id: 'ghostbey', name: 'GhostBey', type: 'Balance', color: '#9d4edd', shadowColor: '#c77dff', stats: { attack: 20, defense: 15, stamina: 270000, hp: 9000 }, specialAbility: { name: "Ataque Intangível", duration: 20000, effect: (self, opponent) => { self.damageReduction = 0.1; self.stats.attack *= 4; if(opponent) opponent.hp -= 800; } } }
         ];
@@ -227,7 +251,7 @@
         const BOSS_DATA = [
             { id: 'nemesis', name: 'Diablo Nemesis (BOSS)', type: 'Balance', color: '#141414', shadowColor: '#ff4d6d', stats: { attack: 30, defense: 30, stamina: 500000, hp: 10000 }, specialAbility: { name: "Modo Armagedom", duration: 20000, effect: (self) => { self.stats.attack *= 4; self.stats.defense *= 4; self.isVortex = true; logToBattle(`Nemesis cria um VÓRTICE GRAVITACIONAL!`, 'log-ai'); } } },
             { id: 'yggdrasil', name: 'World Tree Yggdrasil (BOSS)', type: 'Stamina', color: '#a3b18a', shadowColor: '#dad7cd', stats: { attack: 15, defense: 40, stamina: 800000, hp: 14000 }, specialAbility: { name: "Raízes do Mundo", duration: 30000, effect: (self) => { self.hpRegenRate = 0.1; self.damageReduction = 0.3; logToBattle(`Yggdrasil se enraíza na arena!`, 'log-ai'); } } },
-            { id: 'chimera', name: 'Quasar Chimera (BOSS)', type: 'Balance', color: '#ffb703', shadowColor: '#fb8500', stats: { attack: 35, defense: 35, stamina: 560000, hp: 11000 }, specialAbility: { name: "Fusão Quasar", duration: 20000, effect: (self) => { self.stats.attack *= 5; self.stats.defense *= 0.5; setTimeout(() => { self.stats.attack = self.baseStats.attack * 0.5; self.stats.defense = self.baseStats.defense * 5; }, 10000); } } },
+            { id: 'chimera', name: 'Quasar Chimera (BOSS)', type: 'Balance', color: '#ffb703', shadowColor: '#fb8500', stats: { attack: 35, defense: 35, stamina: 560000, hp: 11000 }, specialAbility: { name: "Fusão Quasar", duration: 20000, effect: (self) => { self.stats.attack *= 5; self.stats.defense *= 0.5; setTimeout(() => { if (!self.isActive) return; self.stats.attack = self.baseStats.attack * 0.5; self.stats.defense = self.baseStats.defense * 5; }, 10000); } } },
             { id: 'chronos', name: 'Chronos Pendulum (BOSS)', type: 'Stamina', color: '#495057', shadowColor: '#ced4da', stats: { attack: 20, defense: 30, stamina: 700000, hp: 12000 }, specialAbility: { name: "Paradoxo Temporal", duration: 15000, effect: (self, opponent) => { if(opponent) { opponent.vx *= 0.1; opponent.vy *= 0.1; opponent.spin -= 50000; } logToBattle(`O tempo se distorce ao redor de ${opponent.name}!`, 'log-ai'); } } },
             { id: 'hades', name: 'Oblivion Hades (BOSS)', type: 'Attack', color: '#432818', shadowColor: '#99582a', stats: { attack: 50, defense: 15, stamina: 400000, hp: 9600 }, specialAbility: { name: "Ceifador do Submundo", duration: 15000, effect: (self) => { self.stats.attack *= 4; self.specialAttackCount = 4; self.specialAttackCooldown = 15; } } },
             { id: 'ragnarok', name: 'Ragnarok Titan (BOSS)', type: 'Stamina', color: '#d90429', shadowColor: '#ef233c', stats: { attack: 25, defense: 25, stamina: 600000, hp: 16000 }, specialAbility: { name: "Resistência Final", duration: 20000, effect: (self) => { if (self.hp < self.baseStats.hp * 0.4) { self.stats.attack *= 8; self.stats.defense *= 5; logToBattle(`Ragnarok desperta sua fúria!`, 'log-ai'); } else { self.stats.stamina *= 2; } } } },
@@ -260,9 +284,11 @@
         let stadiumRadius = canvas.width / 2 - 40; 
         let center = { x: canvas.width / 2, y: canvas.height / 2 };
 
+        const modeSelectionScreen = document.getElementById('modeSelectionScreen');
         const selectionScreen = document.getElementById('selectionScreen');
         const gameArea = document.getElementById('gameArea');
         const playerBeySelect = document.getElementById('playerBeySelect');
+        const aiBeySelect = document.getElementById('aiBeySelect');
         const startBattleBtn = document.getElementById('startBattleBtn');
         const playerActionButtons = document.getElementById('player-action-buttons');
         const autoModeToggle = document.getElementById('auto-mode-toggle');
@@ -280,6 +306,7 @@
         let gameActive = false;
         let lastTime = 0;
         let particles = [];
+        let projectiles = [];
         let aiDecisionTimer = 0;
         let currentStage = 0;
         let bossDefeats = 0; 
@@ -303,6 +330,7 @@
                 this.originalRadius = 15;
                 this.balanceMode = 'attack';
                 this.isBalance = this.type === 'Balance';
+                this.isMinion = data.isMinion || false;
                 
                 this.permanentUpgrades = { damageReduction: 1.0 };
                 this.damageReduction = this.permanentUpgrades.damageReduction;
@@ -311,7 +339,7 @@
                 this.hpRegenRate = 0;
                 this.specialAbility.costReduction = 1;
 
-                if (!isPlayer) {
+                if (!isPlayer && !this.isMinion && GAME_MODE === 'roguelite') {
                     const stageScale = 1 + (stage - 1) * 0.1;
                     const bossScale = 1 + (bossDefeats * 0.20);
                     const totalScale = stageScale * bossScale;
@@ -320,6 +348,11 @@
                     this.baseStats.stamina *= totalScale;
                     this.baseStats.attack *= totalScale;
                     this.baseStats.defense *= totalScale;
+                }
+
+                 if (GAME_MODE === 'versus') {
+                    this.baseStats.hp *= 1.4;
+                    this.baseStats.stamina *= 1.4;
                 }
                 
                 this.reset();
@@ -357,10 +390,12 @@
                 this.isVortex = false;
                 this.isShootingLightning = false;
                 this.isLightSpeed = false;
+                this.immuneToKnockback = false;
                 this.isShrunk = false;
                 this.shrunkDuration = 0;
                 this.isHuntingShrunk = false;
                 this.huntedTarget = null;
+                this.isShootingDehydratorRay = false;
 
 
                 this.applyBalanceMode();
@@ -391,7 +426,7 @@
 
                 const cleanName = this.name.replace(/\s*\(.*\)\s*/, '');
                 const nameParts = cleanName.split(' ');
-                const initials = nameParts.map(part => part[0]).join('');
+                const initials = this.isMinion ? 'OD' : nameParts.map(part => part[0]).join('');
 
                 ctx.font = 'bold 14px Orbitron';
                 ctx.fillStyle = 'white';
@@ -477,7 +512,7 @@
                     if (this.lightningCooldown <= 0) {
                         const opponent = getClosestOpponent(this);
                         if (opponent && opponent.isActive) {
-                            opponent.hp -= 200; // Dano direto do raio
+                            opponent.hp -= 200;
                             for(let i = 0; i < 3; i++) {
                                 particles.push(new Particle(opponent.x, opponent.y, '#FFFFFF', 'collision', { life: 20, size: Math.random() * 15 + 5, speed: 2 }));
                             }
@@ -509,6 +544,22 @@
                     }
                 }
 
+                if (this.isShootingDehydratorRay) {
+                    const opponent = getClosestOpponent(this);
+                     if(opponent) {
+                        const ray = new Projectile(this.x, this.y, opponent, '#3A86FF', (target) => {
+                            logToBattle(`${target.name} foi atingido pelo Raio Desidratador!`, 'log-narrator');
+                            target.isShrunk = true;
+                            target.shrunkDuration = 8000;
+                            target.radius = 5;
+                            this.stats.attack *= 10;
+                            this.isHuntingShrunk = true;
+                            this.huntedTarget = target;
+                        });
+                        projectiles.push(ray);
+                    }
+                    this.isShootingDehydratorRay = false;
+                }
 
                 if (this.isCountering) this.specialDuration -= deltaTime;
                 if (this.isDrainingAura) { beys.filter(b => b !== this && b.isActive).forEach(opp => { const dist = Math.hypot(this.x - opp.x, this.y - opp.y); if (dist < 100) { const drain = 250 * deltaTime; opp.spin -= drain; this.spin += drain / 2; } }); }
@@ -627,6 +678,7 @@
                 this.isVortex = false;
                 this.isShootingLightning = false;
                 this.isLightSpeed = false;
+                this.immuneToKnockback = false;
                 this.isHuntingShrunk = false;
                 this.huntedTarget = null;
                 if(this.tetheredTarget) this.tetheredTarget = null;
@@ -662,33 +714,123 @@
             }
         }
 
+         class Projectile {
+            constructor(startX, startY, target, color, onHit) {
+                this.x = startX;
+                this.y = startY;
+                this.target = target;
+                this.color = color;
+                this.onHit = onHit;
+                this.radius = 5;
+                this.speed = 25;
+                this.isActive = true;
+            }
+
+            update(deltaTime) {
+                if (!this.isActive || !this.target || !this.target.isActive) {
+                    this.isActive = false;
+                    return;
+                }
+                const angle = Math.atan2(this.target.y - this.y, this.target.x - this.x);
+                this.x += Math.cos(angle) * this.speed * deltaTime;
+                this.y += Math.sin(angle) * this.speed * deltaTime;
+
+                const dist = Math.hypot(this.x - this.target.x, this.y - this.target.y);
+                if (dist < this.target.radius + this.radius) {
+                    this.onHit(this.target);
+                    this.isActive = false;
+                }
+            }
+
+            draw() {
+                if (!this.isActive) return;
+                ctx.save();
+                ctx.fillStyle = this.color;
+                ctx.shadowColor = this.color;
+                ctx.shadowBlur = 15;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+        }
+
         // --- FUNÇÕES DE LÓGICA DO JOGO ---
         function populateSelectors() {
+            playerBeySelect.innerHTML = '';
+            aiBeySelect.innerHTML = '';
             BEYBLADE_DATA.forEach(bey => {
                 const option = document.createElement('option');
                 option.value = bey.id;
                 option.textContent = `${bey.name} (${bey.type})`;
                 playerBeySelect.appendChild(option.cloneNode(true));
+                aiBeySelect.appendChild(option.cloneNode(true));
+            });
+        }
+
+         function setupModeSelection() {
+            document.getElementById('rogueliteModeBtn').addEventListener('click', () => {
+                GAME_MODE = 'roguelite';
+                modeSelectionScreen.style.display = 'none';
+                document.getElementById('selectionTitle').textContent = "ASCENSÃO ROGUELITE";
+                document.getElementById('selectionSubtitle').textContent = "Escolha seu Beyblade inicial para começar a jornada.";
+                document.getElementById('player2Selector').classList.add('hidden');
+                selectionScreen.style.display = 'flex';
+            });
+            document.getElementById('versusModeBtn').addEventListener('click', () => {
+                GAME_MODE = 'versus';
+                modeSelectionScreen.style.display = 'none';
+                document.getElementById('selectionTitle').textContent = "MODO VERSUS";
+                document.getElementById('selectionSubtitle').textContent = "Escolham seus combatentes.";
+                document.getElementById('player2Selector').classList.remove('hidden');
+                selectionScreen.style.display = 'flex';
             });
         }
 
         function startNewRun() {
-            const playerData = BEYBLADE_DATA.find(b => b.id === playerBeySelect.value);
-            player = new Beyblade(playerData, true);
-            currentStage = 1;
-            bossDefeats = 0; 
-            window.TIME_SCALE = 2.8;
-            
             selectionScreen.style.display = 'none';
             gameOverScreen.style.display = 'none';
             gameArea.style.display = 'flex';
 
-            resizeCanvas();
-            
-            startNextBattle();
+            if (GAME_MODE === 'roguelite') {
+                const playerData = BEYBLADE_DATA.find(b => b.id === playerBeySelect.value);
+                player = new Beyblade(playerData, true);
+                currentStage = 1;
+                bossDefeats = 0; 
+                window.TIME_SCALE = 2.8;
+                startNextBattle();
+            } else { // Versus Mode
+                const playerData1 = BEYBLADE_DATA.find(b => b.id === playerBeySelect.value);
+                const playerData2 = BEYBLADE_DATA.find(b => b.id === aiBeySelect.value);
+                player = new Beyblade(playerData1, true);
+                const opponent = new Beyblade(playerData2, false);
+                beys = [player, opponent];
+                
+                player.reset();
+                player.x = center.x - 100; 
+                player.y = center.y;
+                player.vx = 20; 
+                
+                opponent.reset();
+                opponent.x = center.x + 100;
+                opponent.y = center.y;
+                opponent.vx = -20;
+
+                setupUI();
+                gameActive = false; 
+                clearLog();
+                logToBattle('VERSUS!', 'log-narrator');
+                projectiles = [];
+                particles = [];
+                aiDecisionTimer = 0;
+                drawStadium();
+                beys.forEach(bey => bey.draw());
+                startLaunchSequence();
+            }
+             resizeCanvas();
         }
 
-        function startNextBattle() {
+        function startNextBattle() { // Apenas para Roguelite
             const numOpponents = 1 + bossDefeats;
             beys = [player]; 
 
@@ -730,7 +872,7 @@
             gameActive = false; 
             clearLog();
             logToBattle(`Estágio ${currentStage}! Batalha contra ${numOpponents} oponente(s)!`, 'log-narrator');
-            
+            projectiles = [];
             particles = [];
             aiDecisionTimer = 0;
             
@@ -738,6 +880,34 @@
             beys.forEach(bey => bey.draw());
             
             startLaunchSequence();
+        }
+
+        function spawnOmnidroid(syndrome) {
+            const omnidroidData = {
+                id: 'omnidroid',
+                name: 'Omnidroide',
+                type: 'Attack',
+                color: '#1C1C1C',
+                shadowColor: '#FF0000',
+                stats: {
+                    attack: 35 + (currentStage * 2),
+                    defense: 25 + (currentStage * 2),
+                    stamina: 200000,
+                    hp: 5000 + (currentStage * 100)
+                },
+                isMinion: true
+            };
+            const omnidroid = new Beyblade(omnidroidData, false);
+            omnidroid.x = syndrome.x + (Math.random() * 40 - 20);
+            omnidroid.y = syndrome.y + (Math.random() * 40 - 20);
+            beys.push(omnidroid);
+
+            setTimeout(() => {
+                if(omnidroid.isActive) {
+                    logToBattle('Omnidroide se autodestruiu!', 'log-narrator');
+                    omnidroid.isActive = false;
+                }
+            }, 15000); // Omnidroide dura 15 segundos
         }
         
         function startLaunchSequence() {
@@ -769,7 +939,7 @@
         }
 
         function setupUI() {
-            document.getElementById('stageCounter').textContent = `Estágio ${currentStage}`;
+            document.getElementById('stageCounter').textContent = GAME_MODE === 'roguelite' ? `Estágio ${currentStage}` : 'VERSUS';
             document.getElementById('player-name').textContent = player.name;
             document.getElementById('player-panel').style.borderColor = player.shadowColor;
             document.getElementById('player-panel').style.boxShadow = `0 0 15px ${player.shadowColor}`;
@@ -793,13 +963,17 @@
                 toggleBtn.remove();
             }
 
-            const opponents = beys.filter(b => !b.isPlayer);
+            const opponents = beys.filter(b => b !== player && !b.isMinion);
             const mainOpponent = opponents[0];
 
             if (mainOpponent) {
                 let aiNameText = mainOpponent.name;
-                if (opponents.length > 1) {
-                    aiNameText += ` (+${opponents.length - 1})`;
+                 if (GAME_MODE === 'roguelite') {
+                    const activeMinions = beys.filter(b => b.isMinion && b.isActive).length;
+                    const activeOpponents = opponents.filter(b => b.isActive).length + activeMinions;
+                    if (activeOpponents > 1) {
+                         aiNameText += ` (+${activeOpponents - 1})`;
+                    }
                 }
                 document.getElementById('ai-name').textContent = aiNameText;
                 document.getElementById('ai-panel').style.borderColor = mainOpponent.shadowColor;
@@ -810,7 +984,7 @@
         }
         
         function getClosestOpponent(fromBey) {
-            const opponents = beys.filter(b => b !== fromBey && b.isActive);
+            const opponents = beys.filter(b => (b.isPlayer !== fromBey.isPlayer || (fromBey.isMinion && !b.isMinion) || (!fromBey.isMinion && b.isMinion)) && b.isActive);
             if (opponents.length === 0) return null;
 
             return opponents.reduce((closest, opp) => {
@@ -819,7 +993,6 @@
                 return distToOpp < distToClosest ? opp : closest;
             }, opponents[0]);
         }
-
 
         function runAI(currentAI, deltaTime) {
             const opponent = getClosestOpponent(currentAI);
@@ -874,9 +1047,11 @@
 
             handleCollisions();
             beys.forEach(bey => bey.update(deltaTime));
+            projectiles.forEach(p => p.update(deltaTime));
             checkWinConditions();
             drawStadium();
             updateAndDrawParticles(deltaTime);
+            projectiles.forEach(p => p.draw());
             beys.forEach(bey => bey.draw());
             updateDynamicUI();
             requestAnimationFrame(gameLoop);
@@ -919,7 +1094,7 @@
                             for (let k = 0; k < 50; k++) {
                                 particles.push(new Particle(prey.x, prey.y, prey.shadowColor, 'collision', { life: 60, size: Math.random() * 6 + 3, speed: Math.random() * 10 + 5 }));
                             }
-                            continue; // Pula a colisão normal
+                            continue;
                         }
 
                         if (b1.isCountering) { b1.hp += b2.stats.attack * 10; b1.isCountering = false; const angle = Math.atan2(b2.y - b1.y, b2.x - b1.x); b1.vx = Math.cos(angle) * 50; b1.vy = Math.sin(angle) * 50; logToBattle(`${b1.name} executa um contra-ataque perfeito!`, 'log-player'); return; }
@@ -935,8 +1110,8 @@
                         const normalY = dy / distance;
                         const p = 2 * (b1.vx * normalX + b1.vy * normalY - b2.vx * normalX - b2.vy * normalY) / 2;
                         
-                        if(!b1.isSlashing) { b1.vx -= (p + knockback) * normalX; b1.vy -= (p + knockback) * normalY; }
-                        if(!b2.isSlashing) { b2.vx += (p + knockback) * normalX; b2.vy += (p + knockback) * normalY; }
+                        if(!b1.isSlashing && !b1.immuneToKnockback) { b1.vx -= (p + knockback) * normalX; b1.vy -= (p + knockback) * normalY; }
+                        if(!b2.isSlashing && !b2.immuneToKnockback) { b2.vx += (p + knockback) * normalX; b2.vy += (p + knockback) * normalY; }
                         
                         const b1TypeAdv = getTypeAdvantage(b1.type, b2.type);
                         const b2TypeAdv = getTypeAdvantage(b2.type, b1.type);
@@ -953,8 +1128,8 @@
                         b1HpDamage *= (b1.damageReduction || 1.0);
                         b2HpDamage *= (b2.damageReduction || 1.0);
 
-                        if (Math.random() < (b1.criticalChance || 0)) { b2HpDamage *= 2; if(b1.isPlayer) logToBattle(`${b1.name} acerta um golpe CRÍTICO!`, 'log-player'); }
-                        if (Math.random() < (b2.criticalChance || 0)) { b1HpDamage *= 2; if(b2.isPlayer) logToBattle(`${b2.name} acerta um golpe CRÍTICO!`, 'log-player'); }
+                        if (Math.random() < (b1.criticalChance || 0)) { b2HpDamage *= 2; if(b1.isPlayer && !b1.isMinion) logToBattle(`${b1.name} acerta um golpe CRÍTICO!`, 'log-player'); }
+                        if (Math.random() < (b2.criticalChance || 0)) { b1HpDamage *= 2; if(b2.isPlayer && !b2.isMinion) logToBattle(`${b2.name} acerta um golpe CRÍTICO!`, 'log-player'); }
                         
                         if(!b1.isShrunk) b1.hp -= b1HpDamage;
                         if(!b2.isShrunk) b2.hp -= b2HpDamage;
@@ -999,7 +1174,7 @@
         
         function createCollisionSparks(x, y) {
             const sparkCount = 15 + Math.random() * 10;
-            const mainOpponent = beys.find(b => !b.isPlayer);
+            const mainOpponent = beys.find(b => b.isPlayer);
             for (let i = 0; i < sparkCount; i++) { 
                 const color = Math.random() > 0.5 ? player.shadowColor : (mainOpponent ? mainOpponent.shadowColor : '#ffffff');
                 const options = { life: Math.random() * 50 + 30, size: Math.random() * 4 + 2, speed: Math.random() * 7 + 3 };
@@ -1010,24 +1185,24 @@
         function checkWinConditions() {
             if (!gameActive) return;
             
-            const opponents = beys.filter(b => !b.isPlayer);
-            const activeOpponents = opponents.filter(opp => opp.isActive);
+            const activePlayers = beys.filter(b => b.isPlayer && b.isActive).length;
+            const activeOpponents = beys.filter(b => !b.isPlayer && b.isActive).length;
 
-            const playerLost = !player.isActive;
-            const allOpponentsLost = activeOpponents.length === 0 && opponents.length > 0;
+            const playerLost = activePlayers === 0;
+            const allOpponentsLost = activeOpponents === 0 && beys.some(b => !b.isPlayer);
 
             if (playerLost) {
                 gameActive = false;
                 handleEndGame(`Você foi derrotado!`, false);
             } else if (allOpponentsLost) {
                 gameActive = false;
-                handleEndGame(`Você venceu o estágio!`, true);
+                handleEndGame(`Você venceu!`, true);
             }
         }
 
         function handleEndGame(message, playerWon) {
             logToBattle(message, 'log-narrator');
-            if (playerWon) {
+            if (GAME_MODE === 'roguelite' && playerWon) {
                 if (currentStage % 10 === 0) {
                     bossDefeats++;
                     logToBattle(`NOVO DESAFIO! Inimigos +${bossDefeats * 20}% mais fortes!`, 'log-narrator');
@@ -1071,7 +1246,8 @@
         function showGameOverScreen() {
             gameArea.style.display = 'none';
             gameOverScreen.style.display = 'flex';
-            document.getElementById('finalScore').textContent = `Você sobreviveu ${currentStage - 1} estágio(s).`;
+            const scoreText = GAME_MODE === 'roguelite' ? `Você sobreviveu ${currentStage - 1} estágio(s).` : 'Fim da Batalha!';
+            document.getElementById('finalScore').textContent = scoreText;
         }
 
         function drawStadium() {
@@ -1088,7 +1264,10 @@
             ctx.beginPath(); ctx.arc(center.x, center.y, innerRadius, 0, 2 * Math.PI); ctx.stroke();
         }
         
-        function updateAndDrawParticles(deltaTime) { for (let i = particles.length - 1; i >= 0; i--) { const p = particles[i]; p.update(deltaTime); p.draw(); if (p.life <= 0) { particles.splice(i, 1); }}}
+        function updateAndDrawParticles(deltaTime) { 
+            for (let i = projectiles.length - 1; i >= 0; i--) { if (!projectiles[i].isActive) projectiles.splice(i, 1); }
+            for (let i = particles.length - 1; i >= 0; i--) { const p = particles[i]; p.update(deltaTime); p.draw(); if (p.life <= 0) { particles.splice(i, 1); }}
+        }
         function logToBattle(message, className) { const p = document.createElement('p'); p.textContent = `> ${message}`; if (className) { p.className = className; } battleLog.appendChild(p); battleLog.scrollTop = battleLog.scrollHeight;}
         function clearLog() { battleLog.innerHTML = ''; }
 
@@ -1118,9 +1297,11 @@
             playerSpcBtn.style.setProperty('--shadow-color', player.shadowColor);
             if (playerToggleBtn) { playerToggleBtn.style.setProperty('--shadow-color', player.shadowColor); }
 
-            const mainOpponent = beys.find(b => !b.isPlayer);
+            const mainOpponent = beys.find(b => !b.isPlayer && !b.isMinion);
             if(mainOpponent) {
-                document.getElementById('ai-hp-bar').style.width = `${Math.max(0, mainOpponent.hp / mainOpponent.baseStats.hp) * 100}%`;
+                const opponentHP = beys.filter(b => !b.isPlayer).reduce((sum, b) => sum + b.hp, 0);
+                const opponentMaxHP = beys.filter(b => !b.isPlayer).reduce((sum, b) => sum + b.baseStats.hp, 0);
+                document.getElementById('ai-hp-bar').style.width = `${Math.max(0, opponentHP / opponentMaxHP) * 100}%`;
                 document.getElementById('ai-spin-bar').style.width = `${Math.max(0, mainOpponent.spin / mainOpponent.baseStats.stamina) * 100}%`;
                 document.getElementById('ai-power-bar').style.width = `${mainOpponent.power}%`;
             }
@@ -1154,7 +1335,7 @@
         startBattleBtn.addEventListener('click', startNewRun);
         restartBtn.addEventListener('click', () => {
             gameOverScreen.style.display = 'none';
-            selectionScreen.style.display = 'flex';
+            modeSelectionScreen.style.display = 'flex';
         });
         document.getElementById('player-attack-btn').addEventListener('click', () => { const target = getClosestOpponent(player); if (target) player.performDashAttack(target); });
         document.getElementById('player-repel-btn').addEventListener('click', () => { const target = getClosestOpponent(player); if (target) player.performEvasiveDash(target); });
@@ -1166,6 +1347,7 @@
 
         // --- INICIALIZAÇÃO ---
         populateSelectors();
+        setupModeSelection();
         
         const canvasEl = document.getElementById('beystadium');
         function resizeCanvas() {
