@@ -213,6 +213,7 @@
 
     document.addEventListener('DOMContentLoaded', () => {
         // --- DATABASE DE BEYBLADES ---
+        // ... (O restante da base de dados permanece o mesmo, foi omitido para economizar espaço)
         const BEYBLADE_DATA = [
             // Metal Saga
             { id: 'pegasus', name: 'Galaxy Pegasus', type: 'Attack', color: '#6bb7d9', shadowColor: '#aee1f9', stats: { attack: 26, defense: 2, stamina: 510000, hp: 12750 }, specialAbility: { name: "Stardust Driver", duration: 1000, effect: (self, opponent) => { self.stats.attack *= 3.5; if(opponent) { const angle = Math.atan2(opponent.y - self.y, opponent.x - self.x); self.vx = Math.cos(angle) * 50; self.vy = Math.sin(angle) * 50;} } } },
@@ -248,7 +249,6 @@
             // Bey Original
             { id: 'ghostbey', name: 'GhostBey', type: 'Balance', color: '#9d4edd', shadowColor: '#c77dff', stats: { attack: 20, defense: 15, stamina: 1012500, hp: 33750 }, specialAbility: { name: "Ataque Intangível", duration: 20000, effect: (self, opponent) => { self.damageReduction = 0.1; self.stats.attack *= 2.5; if(opponent) opponent.hp -= 800; } } }
         ];
-
         const BOSS_DATA = [
             { id: 'nemesis', name: 'Diablo Nemesis (BOSS)', type: 'Balance', color: '#141414', shadowColor: '#ff4d6d', stats: { attack: 30, defense: 30, stamina: 1875000, hp: 37500 }, specialAbility: { name: "Modo Armagedom", duration: 20000, effect: (self) => { self.stats.attack *= 2.5; self.stats.defense *= 2.5; self.isVortex = true; logToBattle(`Nemesis cria um VÓRTICE GRAVITACIONAL!`, 'log-ai'); } } },
             { id: 'yggdrasil', name: 'World Tree Yggdrasil (BOSS)', type: 'Stamina', color: '#a3b18a', shadowColor: '#dad7cd', stats: { attack: 15, defense: 40, stamina: 3000000, hp: 52500 }, specialAbility: { name: "Raízes do Mundo", duration: 30000, effect: (self) => { self.hpRegenRate = 0.1; self.damageReduction = 0.3; logToBattle(`Yggdrasil se enraíza na arena!`, 'log-ai'); } } },
@@ -262,7 +262,6 @@
             { id: 'valkyrie', name: 'Celestial Valkyrie (BOSS)', type: 'Attack', color: '#0077b6', shadowColor: '#caf0f8', stats: { attack: 55, defense: 10, stamina: 1500000, hp: 37500 }, specialAbility: { name: "Lâmina Celestial", duration: 20000, effect: (self) => { self.stats.attack *= 3; self.specialAttackCount = 8; self.specialAttackCooldown = 0; } } },
             { id: 'lucifer', name: 'The End Lucifer (BOSS)', type: 'Defense', color: '#5a189a', shadowColor: '#9d4edd', stats: { attack: 20, defense: 60, stamina: 1875000, hp: 56250 }, specialAbility: { name: "Barreira Final", duration: 15000, effect: (self, opponent) => { self.damageReduction = 0.05; if(opponent) { opponent.hp -= 100; opponent.spin -= 1000;} logToBattle(`A barreira de Lucifer reflete o dano!`, 'log-ai'); } } }
         ];
-        
         const UPGRADES = [
             { id: 'hp_1', text: "HP Máx. +80%", icon: "bi bi-heart-fill", apply: (bey) => { bey.baseStats.hp *= 1.80; bey.hp *= 1.80; } },
             { id: 'stamina_1', text: "Rotação Máx. +60%", icon: "bi bi-arrow-repeat", apply: (bey) => { bey.baseStats.stamina *= 1.60; bey.spin *= 1.60; } },
@@ -277,7 +276,7 @@
             { id: 'hp_regen', text: "Regeneração de 5% HP/s", icon: "bi bi-plus-circle-fill", apply: (bey) => { bey.hpRegenRate = (bey.hpRegenRate || 0) + 0.05; } },
             { id: 'ability_cost', text: "-75% Custo de Habilidade", icon: "bi bi-gem", apply: (bey) => { bey.specialAbility.costReduction = (bey.specialAbility.costReduction || 1) * 0.25; } }
         ];
-        
+
         // --- VARIÁVEIS GLOBAIS ---
         const canvas = document.getElementById('beystadium');
         const ctx = canvas.getContext('2d');
@@ -301,6 +300,8 @@
         
         const launchSequenceScreen = document.getElementById('launch-sequence');
         const launchText = document.getElementById('launch-text');
+        
+        let collisionSound;
 
         let player;
         let beys = [];
@@ -317,6 +318,7 @@
         window.TIME_SCALE = 1.8;
 
         // --- CLASSES ---
+        // ... (Classes permanecem as mesmas, omitido para economizar espaço)
         class Beyblade {
             constructor(data, isPlayer, stage = 1) {
                 this.id = data.id;
@@ -354,10 +356,10 @@
                     this.baseStats.defense *= totalScale;
                 }
 
-                 if (GAME_MODE === 'versus') {
+               if (GAME_MODE === 'versus') {
                     this.baseStats.hp *= 1.4;
                     this.baseStats.stamina *= 1.4;
-                 }
+               }
                 
                 this.reset();
             }
@@ -680,7 +682,6 @@
                 if (this.isBalance) this.applyBalanceMode();
             }
         }
-        
         class Particle {
             constructor(x, y, baseColor, type = 'collision', options = {}) {
                 this.x = x; this.y = y;
@@ -707,8 +708,7 @@
                 ctx.restore();
             }
         }
-
-         class Projectile {
+        class Projectile {
             constructor(startX, startY, target, color, onHit) {
                 this.x = startX;
                 this.y = startY;
@@ -762,7 +762,7 @@
             });
         }
 
-         function setupModeSelection() {
+       function setupModeSelection() {
             document.getElementById('rogueliteModeBtn').addEventListener('click', () => {
                 GAME_MODE = 'roguelite';
                 modeSelectionScreen.style.display = 'none';
@@ -782,6 +782,28 @@
         }
 
         function startNewRun() {
+            // CORREÇÃO: Prepara o áudio no primeiro clique.
+            if (!collisionSound) {
+                // 1. Alterado para usar o seu arquivo MP3 local.
+                collisionSound = new Audio('3-metal-pipe-crashing.mp3');
+                collisionSound.volume = 0.6; // Você pode ajustar o volume aqui
+
+                // 2. "Prepara" o áudio para contornar restrições de navegadores (especialmente mobile).
+                collisionSound.muted = true;
+                const playPromise = collisionSound.play();
+                if (playPromise !== undefined) {
+                    playPromise.then(_ => {
+                        collisionSound.pause();
+                        collisionSound.currentTime = 0;
+                        collisionSound.muted = false;
+                    }).catch(error => {
+                        // Este erro pode acontecer, mas o som ainda pode funcionar nas colisões.
+                        console.error("Tentativa de desbloqueio de áudio falhou, mas o jogo continuará:", error);
+                        collisionSound.muted = false;
+                    });
+                }
+            }
+            
             selectionScreen.style.display = 'none';
             gameOverScreen.style.display = 'none';
             gameArea.style.display = 'flex';
@@ -1109,6 +1131,10 @@
                     const distance = Math.hypot(dx, dy);
 
                     if (distance < b1.radius + b2.radius) {
+                        if (collisionSound && collisionSound.readyState >= 2) {
+                            collisionSound.currentTime = 0;
+                            collisionSound.play().catch(e => {});
+                        }
                         
                         if (b1.isCountering) { b1.hp += b2.stats.attack * 10; b1.isCountering = false; const angle = Math.atan2(b2.y - b1.y, b2.x - b1.x); b1.vx = Math.cos(angle) * 50; b1.vy = Math.sin(angle) * 50; logToBattle(`${b1.name} executa um contra-ataque perfeito!`, 'log-player'); return; }
                         if (b2.isCountering) { b2.hp += b1.stats.attack * 10; b2.isCountering = false; const angle = Math.atan2(b1.y - b2.y, b1.x - b2.x); b2.vx = Math.cos(angle) * 50; b2.vy = Math.sin(angle) * 50; logToBattle(`${b2.name} executa um contra-ataque perfeito!`, 'log-player'); return; }
